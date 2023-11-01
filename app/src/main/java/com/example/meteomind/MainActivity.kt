@@ -1,9 +1,12 @@
 package com.example.meteomind
 
 import android.content.ContentValues.TAG
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.widget.doAfterTextChanged
@@ -31,9 +34,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var placesClient: PlacesClient
-    private lateinit var suggestedLocationAdapter: SuggestedLocationAdapter
-    private lateinit var locationViewModel: LocationViewModel
+    private var searchResultAdapter = SearchResultAdapter(emptyList())
+    private lateinit var searchResultViewModel: SearchResultViewModel
     private lateinit var searchView: SearchView
+    private val locationViewModel: LocationViewModel by viewModels {
+        LocationModelFactory((this.application as MyApplication).repository)
+    }
+    private lateinit var locationAdapter: LocationAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +48,11 @@ class MainActivity : AppCompatActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        Places.initialize(this, "AIzaSyA-WCq8dGUwASP8hJvLCl0-B5we_XxuYtE", Locale.US)
+        val applicationInfo: ApplicationInfo = application.packageManager
+            .getApplicationInfo(application.packageName, PackageManager.GET_META_DATA)
+        val apiKey = applicationInfo.metaData["MAPS_API_KEY"].toString()
+
+        Places.initialize(this, apiKey, Locale.US)
         placesClient = Places.createClient(this)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -50,41 +61,59 @@ class MainActivity : AppCompatActivity() {
         val searchBar = binding.searchBar
         setSupportActionBar(searchBar)
 
-        locationViewModel = ViewModelProvider(this)[LocationViewModel::class.java]
+        searchResultViewModel = ViewModelProvider(this)[SearchResultViewModel::class.java]
 
         val recyclerView = binding.recyclerView
-        suggestedLocationAdapter = SuggestedLocationAdapter(emptyList())
-        recyclerView.adapter = suggestedLocationAdapter
+//        recyclerView.adapter = searchResultAdapter
 
         searchView = binding.searchView
 
-        locationViewModel.getLocations().observe(this) { locations ->
-            suggestedLocationAdapter = SuggestedLocationAdapter(locations)
-            suggestedLocationAdapter.apply {
-                setListener(object: SuggestedLocationAdapter.Listener{
+        locationViewModel.locations.observe(this){ locations ->
+            locationAdapter = LocationAdapter(locations).apply {
+                setListener(object : LocationAdapter.Listener {
                     override fun onClick(position: Int) {
                         val location = locations[position]
-                        getPlaceById(location.paceId)
                         searchBar.setText(location.locationName)
-                        searchView.hide();
+                        searchView.hide()
+                    }
+                })
+                setRemoveLocationClickListener(object : LocationAdapter.RemoveLocationClickListener{
+                    override fun onRemoveLocationClick(position: Int) {
+                        locationViewModel.deleteLocation(locations[position])
                     }
                 })
             }
-            recyclerView.adapter = suggestedLocationAdapter
+            recyclerView.adapter = locationAdapter
         }
+
+        searchResultViewModel.getResults().observe(this) { results ->
+            searchResultAdapter = SearchResultAdapter(results)
+            searchResultAdapter.apply {
+                setListener(object: SearchResultAdapter.Listener{
+                    override fun onClick(position: Int) {
+                        val result = results[position]
+                        getPlaceByResult(result)
+                        searchBar.setText(result.locationName)
+                        recyclerView.adapter = locationAdapter
+                        searchView.hide()
+                        searchResultViewModel.deleteResults()
+
+                    }
+                })
+            }
+        }
+
 
         searchView
             .editText
             .doOnTextChanged { text, start, before, count ->
-                if (!text.isNullOrEmpty()){
-                    placesAutocomplete(text.toString())
-                }
-            }
-        searchView
-            .editText
-            .doAfterTextChanged { text ->
                 if(text.isNullOrEmpty()){
-                    locationViewModel.deleteAllLocations()
+                    searchResultViewModel.deleteResults()
+                    recyclerView.adapter =  locationAdapter
+                }
+                else{
+                    recyclerView.adapter = searchResultAdapter
+                    placesAutocomplete(text.toString())
                 }
             }
 
@@ -118,14 +147,14 @@ class MainActivity : AppCompatActivity() {
                 .build()
         placesClient.findAutocompletePredictions(request)
             .addOnSuccessListener { response: FindAutocompletePredictionsResponse ->
-                locationViewModel.deleteAllLocations()
+                searchResultViewModel.deleteResults()
                 if(searchView.text.isNotEmpty()){
-                    val newLocations = emptyList<Location>().toMutableList()
+                    val newSearchResults = emptyList<SearchResult>().toMutableList()
                     for (i in 0 until minOf(5, response.autocompletePredictions.size)) {
-                        newLocations += Location(response.autocompletePredictions[i].getPrimaryText(null).toString(),
+                        newSearchResults += SearchResult(response.autocompletePredictions[i].getPrimaryText(null).toString(),
                             response.autocompletePredictions[i].placeId)
                     }
-                    locationViewModel.fillLocationsWithNewData(newLocations)
+                    searchResultViewModel.replaceResults(newSearchResults)
                 }
 //                for (prediction in response.autocompletePredictions) {
 //                    Log.i(TAG, prediction.placeId)
@@ -138,15 +167,24 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun getPlaceById(placeId: String){
+    private fun getPlaceByResult(result: SearchResult){
 
         val placeFields = listOf(Place.Field.ID, Place.Field.LAT_LNG)
 
-        val request = FetchPlaceRequest.newInstance(placeId, placeFields)
+        val request = FetchPlaceRequest.newInstance(result.paceId, placeFields)
 
         placesClient.fetchPlace(request)
             .addOnSuccessListener { response: FetchPlaceResponse ->
                 val place = response.place
+                locationViewModel.addLocation(
+                    Location(
+                        result.locationName,
+                        place.id ?: "",
+                        place.latLng?.latitude ?: 0.0,
+                        place.latLng?.longitude ?: 0.0,
+                        System.currentTimeMillis()
+                    )
+                )
                 Toast.makeText(this, place.latLng?.toString() ?: "", Toast.LENGTH_LONG).show()
             }.addOnFailureListener { exception: Exception ->
                 if (exception is ApiException) {

@@ -4,19 +4,49 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:windowTranslucentStatus="true"
     tools:context=".MainActivity">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="150dp"
         app:layout_behavior="@string/searchbar_scrolling_view_behavior">
-        <!-- Screen content goes here. -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_margin="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Current conditions" />
+
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_current"
+                style="?attr/materialCardViewFilledStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:contentPadding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Wind" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
     </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="44dp">
 
         <com.google.android.material.search.SearchBar
             android:id="@+id/search_bar"
@@ -32,7 +62,6 @@
         android:hint="@string/searchbar_hint"
         app:autoShowKeyboard="false"
         app:layout_anchor="@id/search_bar">
-        <!-- Search suggestions/results go here (ScrollView, RecyclerView, etc.). -->
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
