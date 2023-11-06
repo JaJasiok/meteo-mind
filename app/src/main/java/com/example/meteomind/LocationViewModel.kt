@@ -1,36 +1,36 @@
 package com.example.meteomind
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.android.gms.maps.model.LatLng
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
-class Location(val locationName: String, val paceId: String = "")
+class LocationViewModel(private val repository: LocationRepository) : ViewModel(){
 
-class LocationViewModel : ViewModel() {
-    private val locationList = MutableLiveData<List<Location>>()
+    var locations: LiveData<List<Location>> = repository.locations.asLiveData()
 
-    init {
-        // Initialize the LiveData with some initial data
-        locationList.value = emptyList()
+
+    fun addLocation(newLocation: Location) = viewModelScope.launch {
+        repository.insertLocation(newLocation)
     }
 
-    fun getLocations(): LiveData<List<Location>> {
-        return locationList
+    fun updateLocation(location: Location) = viewModelScope.launch {
+        repository.updateLocation(location)
     }
 
-    fun deleteAllLocations() {
-        // Clear the location list
-        locationList.value = emptyList()
+    fun deleteLocation(location: Location) = viewModelScope.launch {
+        repository.deleteLocation(location)
     }
+}
 
-    fun fillLocationsWithNewData(newData: List<Location>) {
-        // Fill the location list with new data
-        locationList.value = newData
-    }
+class LocationModelFactory(private val repository: LocationRepository) : ViewModelProvider.Factory {
 
-    fun getLocationCount(): Int {
-        // Return the size of the itemList
-        return locationList.value?.size ?: 0
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(LocationViewModel::class.java))
+            return LocationViewModel(repository) as T
+
+        throw IllegalArgumentException()
     }
 }
