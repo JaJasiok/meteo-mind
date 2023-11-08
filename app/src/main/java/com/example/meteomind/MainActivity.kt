@@ -9,10 +9,10 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
-import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doOnTextChanged
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.meteomind.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.model.LatLng
@@ -121,7 +121,34 @@ class MainActivity : AppCompatActivity() {
         divider.isLastItemDecorated = false
         recyclerView.addItemDecoration(divider)
 
+        val hourlyWeatherRecyclerView = binding.weatherView.hourlyWeather
 
+        hourlyWeatherRecyclerView.layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
+        val hourlyWeatherAdapter = HourlyWeatherAdapter(listOf(1,2,3,4,5,6,7,8))
+        hourlyWeatherRecyclerView.adapter = hourlyWeatherAdapter
+
+
+
+        val hourlyDetailsRecyclerView = binding.weatherView.hourlyDetails
+        hourlyDetailsRecyclerView.layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
+        val hourlyPrecipitationAdapter = HourlyPrecipitationAdapter(listOf(1,2,3,4,5,6,7,8))
+        val hourlyWindAdapter = HourlyWindAdapter(listOf(1,2,3,4,5,6,7,8))
+
+        val toggleButton = binding.weatherView.toggleButton
+        toggleButton.addOnButtonCheckedListener { toggleButton, checkedId, isChecked ->
+            if (isChecked) {
+                when (checkedId) {
+                    R.id.button_precipitation -> {
+                        hourlyDetailsRecyclerView.adapter = hourlyPrecipitationAdapter
+                    }
+                    R.id.button_wind -> {
+                        hourlyDetailsRecyclerView.adapter = hourlyWindAdapter
+                    }
+                }
+            }
+        }
+
+        toggleButton.check(R.id.button_precipitation)
     }
 
     private fun placesAutocomplete(query: String){

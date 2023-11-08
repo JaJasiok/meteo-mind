@@ -10,13 +10,11 @@
         android:clipToPadding="false"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingLeft="15dp"
-        android:paddingTop="8dp"
-        android:paddingRight="15dp"
-        android:paddingBottom="8dp">
+        android:padding="8dp"
+        android:background="@macro/m3_comp_filled_card_container_color">
 
         <TextView
-            android:id="@+id/card_temp"
+            android:id="@+id/hourly_temp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -33,7 +31,7 @@
 
 
         <TextView
-            android:id="@+id/card_hour"
+            android:id="@+id/hourly_hour"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
