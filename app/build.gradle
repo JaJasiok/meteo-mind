@@ -9,9 +9,6 @@ android {
     namespace 'com.example.meteomind'
     compileSdk 34
 
-    def localProperties = new Properties()
-    localProperties.load(new FileInputStream(rootProject.file("local.properties")))
-
     defaultConfig {
         applicationId "com.example.meteomind"
         minSdk 31
@@ -19,6 +16,8 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "MAPS_API_KEY", props['MAPS_API_KEY']
     }
 
     buildTypes {
@@ -36,6 +35,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 
@@ -48,6 +48,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.7.4'
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.4'
     implementation 'com.google.android.libraries.places:places:3.2.0'
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
     kapt 'androidx.room:room-compiler:2.6.0'
     implementation 'androidx.room:room-common:2.6.0'
     implementation 'androidx.room:room-ktx:2.6.0'

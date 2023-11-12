@@ -6,3 +6,12 @@ plugins {
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin' version '2.0.1' apply false
 
 }
+
+ext {
+    // Load properties from gradle.properties
+    propertiesFile = file('local.properties')
+    props = new Properties()
+    if (propertiesFile.exists()) {
+        propertiesFile.withInputStream { props.load(it) }
+    }
+}

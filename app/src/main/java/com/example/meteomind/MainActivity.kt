@@ -1,6 +1,7 @@
 package com.example.meteomind
 
 import android.content.ContentValues.TAG
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -62,6 +63,12 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(searchBar)
 
         searchResultViewModel = ViewModelProvider(this)[SearchResultViewModel::class.java]
+
+        val mapsButton = binding.weatherView.mapsButton
+        mapsButton.setOnClickListener {
+            val intent = Intent(this@MainActivity, MapsActivity::class.java)
+            startActivity(intent)
+        }
 
         val recyclerView = binding.recyclerView
 //        recyclerView.adapter = searchResultAdapter

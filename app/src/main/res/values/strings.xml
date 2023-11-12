@@ -44,4 +44,5 @@
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
     <string name="searchbar_hint">Search location</string>
+    <string name="title_activity_maps">MapsActivity</string>
 </resources>
