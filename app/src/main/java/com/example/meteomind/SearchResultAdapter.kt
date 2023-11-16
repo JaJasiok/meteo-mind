@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+
 class SearchResultAdapter(private val searchResultList: List<SearchResult>) :
     RecyclerView.Adapter<SearchResultAdapter.SearchResultViewHolder>() {
 
@@ -34,7 +35,7 @@ class SearchResultAdapter(private val searchResultList: List<SearchResult>) :
 
         viewHolder.textView.text = searchResultList[position].locationName
 
-        viewHolder.itemView.setOnClickListener{
+        viewHolder.itemView.setOnClickListener {
             listener?.onClick(position)
         }
     }

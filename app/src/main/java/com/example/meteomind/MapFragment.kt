@@ -2,10 +2,14 @@ package com.example.meteomind
 
 import android.os.Bundle
 import android.os.Handler
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.meteomind.databinding.ActivityMapsBinding
+import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
+import com.example.meteomind.databinding.FragmentMapBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -19,16 +23,19 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.slider.Slider
 
-
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-    private lateinit var binding: ActivityMapsBinding
+    private lateinit var binding: FragmentMapBinding
     private lateinit var layersFab: FloatingActionButton
     private lateinit var tempFab: FloatingActionButton
     private lateinit var preciFab: FloatingActionButton
     private lateinit var playPauseButton: MaterialButton
+    private lateinit var speedButton: Button
     private lateinit var slider: Slider
+    private lateinit var viewPager: ViewPager2
+    private lateinit var viewPagerCallback: ViewPager2.OnPageChangeCallback
+    private var isViewPagerSwipeEnabled = true
 
     private val polandBounds = LatLngBounds(
         LatLng(48.75, 13.5),
@@ -44,20 +51,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private var frameIndex = 0
     private val handler = Handler()
-    private val frameDelay: Long = 1000
+    private var frameDelay: Long = 1000
 
     private lateinit var currentAnimationFrames: List<BitmapDescriptor>
     private lateinit var animationFrames1: List<BitmapDescriptor>
     private lateinit var animationFrames2: List<BitmapDescriptor>
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
 
-        binding = ActivityMapsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentMapBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val mapFragment =
+            childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         animationFrames1 = listOf(
@@ -96,14 +109,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        tempFab.setOnClickListener{
-            if(currentAnimationFrames == animationFrames1){
+        tempFab.setOnClickListener {
+            if (currentAnimationFrames == animationFrames1) {
                 currentAnimationFrames = animationFrames2
             }
         }
 
-        preciFab.setOnClickListener{
-            if(currentAnimationFrames == animationFrames2){
+        preciFab.setOnClickListener {
+            if (currentAnimationFrames == animationFrames2) {
                 currentAnimationFrames = animationFrames1
             }
         }
@@ -112,11 +125,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         playPauseButton.setOnClickListener {
             if (isPlaying) {
                 handler.removeCallbacksAndMessages(null)
-                playPauseButton.icon = ContextCompat.getDrawable(this, R.drawable.play_arrow_24px)
+                playPauseButton.icon =
+                    ContextCompat.getDrawable(requireContext(), R.drawable.play_arrow_24px)
 
             } else {
                 startImageAnimation()
-                playPauseButton.icon = ContextCompat.getDrawable(this, R.drawable.pause_24px)
+                playPauseButton.icon =
+                    ContextCompat.getDrawable(requireContext(), R.drawable.pause_24px)
             }
             isPlaying = !isPlaying
         }
@@ -128,6 +143,33 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 updateGroundOverlayImage()
             }
         }
+        speedButton = binding.speedButton
+        speedButton.setOnClickListener {
+            if (frameDelay == 1000.toLong()) {
+                frameDelay = 500.toLong()
+                speedButton.text = "×2"
+            } else {
+                frameDelay = 1000.toLong()
+                speedButton.text = "×1"
+            }
+        }
+
+        viewPager = requireActivity().findViewById(R.id.viewPager)
+
+        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                // Enable or disable swipe based on the current position
+                isViewPagerSwipeEnabled =
+                    position == 1 // Assuming the map fragment is at position 0
+            }
+        }
+
+        viewPager.registerOnPageChangeCallback(viewPagerCallback)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        viewPager.unregisterOnPageChangeCallback(viewPagerCallback)
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -140,12 +182,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         mMap.setOnCameraMoveStartedListener {
             isMovingCamera = true
+            viewPager.isUserInputEnabled = false
+
         }
+
 
         mMap.setOnCameraIdleListener {
             if (isMovingCamera) {
-                val zoom = mMap.cameraPosition.zoom
-
+//                val zoom = mMap.cameraPosition.zoom
 //                if (zoom < minZoom) {
 //                    mMap.animateCamera(CameraUpdateFactory.zoomTo(minZoom))
 //                }
@@ -160,6 +204,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
             isMovingCamera = false
+            viewPager.isUserInputEnabled = true
         }
 
 //        val papaj = GroundOverlayOptions()

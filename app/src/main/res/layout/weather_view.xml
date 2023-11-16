@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="150dp"
+    android:layout_marginTop="70dp"
     app:layout_behavior="@string/searchbar_scrolling_view_behavior">
 
 
@@ -12,12 +12,6 @@
         android:layout_height="match_parent"
         android:layout_margin="16dp"
         android:orientation="vertical">
-
-        <com.google.android.material.button.MaterialButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Maps"
-            android:id="@+id/maps_button"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -200,15 +194,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:singleSelection="true"
-                    app:selectionRequired="true">
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
 
                     <Button
                         android:id="@+id/button_precipitation"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Precipitation"/>
+                        android:text="Precipitation" />
 
                     <Button
                         android:id="@+id/button_wind"

@@ -7,7 +7,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
-class LocationViewModel(private val repository: LocationRepository) : ViewModel(){
+class LocationViewModel(private val repository: LocationRepository) : ViewModel() {
 
     var locations: LiveData<List<Location>> = repository.locations.asLiveData()
 

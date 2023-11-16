@@ -7,35 +7,35 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@macro/m3_comp_filled_card_container_color"
         android:clipToPadding="false"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="8dp"
-        android:background="@macro/m3_comp_filled_card_container_color">
+        android:padding="8dp">
 
         <TextView
             android:id="@+id/hourly_temp"
+            style="?textAppearanceTitleSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            style="?textAppearanceTitleSmall"
             android:layout_marginBottom="8dp"
-            android:text="21°C"/>
+            android:gravity="center"
+            android:text="21°C" />
 
 
         <ImageView
             android:id="@+id/hourly_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/cloud"/>
+            android:src="@drawable/cloud" />
 
 
         <TextView
             android:id="@+id/hourly_hour"
+            style="?textAppearanceBodySmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            style="?textAppearanceBodySmall"
             android:text="12:00" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

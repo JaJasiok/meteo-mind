@@ -7,27 +7,27 @@
 
     <ImageView
         android:id="@+id/history_image"
-        android:src="@drawable/history_24px"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"/>
+        android:layout_alignParentStart="true"
+        android:src="@drawable/history_24px" />
 
     <TextView
         android:id="@+id/locationName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="8pt"
-        android:text="Poznań"
+        android:layout_marginStart="8dp"
         android:layout_toEndOf="@id/history_image"
-        android:layout_marginStart="8dp"/>
+        android:text="Poznań"
+        android:textSize="8pt" />
 
     <TextView
         android:id="@+id/removeLocation"
+        style="?textAppearanceHeadline6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="8pt"
+        android:layout_alignParentEnd="true"
         android:text="Remove"
-        style="?textAppearanceHeadline6"
-        android:layout_alignParentEnd="true"/>
+        android:textSize="8pt" />
 
 </RelativeLayout>

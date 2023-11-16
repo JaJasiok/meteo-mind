@@ -7,7 +7,8 @@ import android.view.ViewGroup
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-class HourlyWindAdapter(private var list: List<Int>) : RecyclerView.Adapter<HourlyWindAdapter.ViewHolder>() {
+class HourlyWindAdapter(private var list: List<Int>) :
+    RecyclerView.Adapter<HourlyWindAdapter.ViewHolder>() {
 
     private var listener: Listener? = null
 
