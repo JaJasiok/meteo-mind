@@ -30,6 +30,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     private lateinit var layersFab: FloatingActionButton
     private lateinit var tempFab: FloatingActionButton
     private lateinit var preciFab: FloatingActionButton
+    private lateinit var cloudFab: FloatingActionButton
     private lateinit var playPauseButton: MaterialButton
     private lateinit var speedButton: Button
     private lateinit var slider: Slider
@@ -56,6 +57,8 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     private lateinit var currentAnimationFrames: List<BitmapDescriptor>
     private lateinit var animationFrames1: List<BitmapDescriptor>
     private lateinit var animationFrames2: List<BitmapDescriptor>
+
+    private var activeLayerIcon = R.drawable.thermometer_24px
 
 
     override fun onCreateView(
@@ -96,15 +99,20 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         layersFab = binding.layersFab
         tempFab = binding.tempFab
         preciFab = binding.preciFab
+        cloudFab = binding.cloudFab
 
         layersFab.setOnClickListener {
             if (!isExpanded) {
                 tempFab.show()
                 preciFab.show()
+                cloudFab.show()
+                layersFab.setImageResource(R.drawable.layers_24px)
                 isExpanded = true
             } else {
                 tempFab.hide()
                 preciFab.hide()
+                cloudFab.hide()
+                layersFab.setImageResource(activeLayerIcon)
                 isExpanded = false
             }
         }
@@ -113,12 +121,39 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
             if (currentAnimationFrames == animationFrames1) {
                 currentAnimationFrames = animationFrames2
             }
+            tempFab.hide()
+            preciFab.hide()
+            cloudFab.hide()
+
+            layersFab.setImageResource(R.drawable.thermometer_24px)
+            activeLayerIcon = R.drawable.thermometer_24px
+            isExpanded = false
         }
 
         preciFab.setOnClickListener {
             if (currentAnimationFrames == animationFrames2) {
                 currentAnimationFrames = animationFrames1
             }
+            tempFab.hide()
+            preciFab.hide()
+            cloudFab.hide()
+
+            layersFab.setImageResource(R.drawable.water_drop_24px)
+            activeLayerIcon = R.drawable.water_drop_24px
+            isExpanded = false
+        }
+
+        cloudFab.setOnClickListener {
+//            if (currentAnimationFrames == animationFrames3) {
+//                currentAnimationFrames = animationFrames3
+//            }
+            tempFab.hide()
+            preciFab.hide()
+            cloudFab.hide()
+
+            layersFab.setImageResource(R.drawable.cloud_24px)
+            activeLayerIcon = R.drawable.cloud_24px
+            isExpanded = false
         }
 
         playPauseButton = binding.playPauseButton

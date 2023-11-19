@@ -115,7 +115,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         }
 
         searchView.addTransitionListener { searchView: SearchView?, previousState: TransitionState?, newState: TransitionState ->
-            var tabLayout = (activity as MainActivity).tabLayout
+            val tabLayout = (activity as MainActivity).tabLayout
             if (newState == TransitionState.SHOWING) {
                 tabLayout.visibility = View.GONE
             } else if (newState == TransitionState.HIDING) {
