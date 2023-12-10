@@ -4,10 +4,11 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-class HourlyPrecipitationAdapter(private var list: List<Int>) :
+class HourlyPrecipitationAdapter(private var weatherData: WeatherData) :
     RecyclerView.Adapter<HourlyPrecipitationAdapter.ViewHolder>() {
 
     private var listener: Listener? = null
@@ -33,19 +34,18 @@ class HourlyPrecipitationAdapter(private var list: List<Int>) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val cardView = holder.cardView
 
-//        cardView.findViewById<TextView>(R.id.temp_text).text = "21°C"
+        cardView.findViewById<TextView>(R.id.precipitation_value).text = weatherData.timestamps[position].values.tp.toString()
 //
 //        cardView.findViewById<ImageView>(R.id.hourly_image).setImageDrawable(getDrawableByName(cardView.context, "cloud.xml"))
 //
-//        cardView.findViewById<TextView>(R.id.card_hour).text = "12:00"
-
+        cardView.findViewById<TextView>(R.id.precipitation_hour).text = formatHour(weatherData.timestamps[position].timestamp)
         cardView.setOnClickListener {
             listener?.onClick(position)
         }
     }
 
     override fun getItemCount(): Int {
-        return list.size
+        return weatherData.timestamps.size
     }
 
     fun getDrawableByName(context: Context, drawableName: String): Drawable? {

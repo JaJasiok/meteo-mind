@@ -31,6 +31,8 @@ import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.search.SearchView
 import com.google.android.material.search.SearchView.TransitionState
 import java.util.Locale
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 
 class WeatherFragment : Fragment(R.layout.fragment_weather) {
@@ -46,6 +48,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         LocationModelFactory((requireActivity().application as MyApplication).repository)
     }
     private lateinit var locationAdapter: LocationAdapter
+
+    private lateinit var weatherData: WeatherData
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -123,7 +127,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             }
         }
 
-
         searchView
             .editText
             .doOnTextChanged { text, start, before, count ->
@@ -136,26 +139,38 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 }
             }
 
-        val divider = MaterialDividerItemDecoration(
-            requireContext(),
-            LinearLayoutManager.VERTICAL /*or LinearLayoutManager.HORIZONTAL*/
-        )
+        val divider = MaterialDividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
         divider.isLastItemDecorated = false
         recyclerView.addItemDecoration(divider)
+
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            weatherData = arguments?.getParcelable("weatherData", WeatherData::class.java)!!
+        }else{
+            weatherData = arguments?.getParcelable<WeatherData>("weatherData")!!
+        }
+
+        val tempText = binding.weatherView.tempText
+        tempText.text = weatherData.timestamps[0].values.t2m.toInt().toString() + "°C"
 
         val hourlyWeatherRecyclerView = binding.weatherView.hourlyWeather
 
         hourlyWeatherRecyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val hourlyWeatherAdapter = HourlyWeatherAdapter(listOf(1, 2, 3, 4, 5, 6, 7, 8))
+        val hourlyWeatherAdapter = HourlyWeatherAdapter(weatherData)
         hourlyWeatherRecyclerView.adapter = hourlyWeatherAdapter
 
+        val windArrow = binding.weatherView.windArrow
+        windArrow.rotation = calculateWindDirection(weatherData.timestamps[0].values.u10, weatherData.timestamps[0].values.v10)
+        val windDirection = binding.weatherView.windDirection
+        windDirection.text = getWindDirection(weatherData.timestamps[0].values.u10, weatherData.timestamps[0].values.v10)
+        val windValue = binding.weatherView.windValue
+        windValue.text = sqrt(weatherData.timestamps[0].values.u10.pow(2) + weatherData.timestamps[0].values.v10.pow(2)).toInt().toString() + " km/h"
 
         val hourlyDetailsRecyclerView = binding.weatherView.hourlyDetails
         hourlyDetailsRecyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        val hourlyPrecipitationAdapter = HourlyPrecipitationAdapter(listOf(1, 2, 3, 4, 5, 6, 7, 8))
-        val hourlyWindAdapter = HourlyWindAdapter(listOf(1, 2, 3, 4, 5, 6, 7, 8))
+        val hourlyPrecipitationAdapter = HourlyPrecipitationAdapter(weatherData)
+        val hourlyWindAdapter = HourlyWindAdapter(weatherData)
 
         val toggleButton = binding.weatherView.toggleButton
         toggleButton.addOnButtonCheckedListener { toggleButton, checkedId, isChecked ->
@@ -173,6 +188,30 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         }
 
         toggleButton.check(R.id.button_precipitation)
+//
+//
+//        lifecycleScope.launch {
+//            val latitude = 49.7128
+//            val longitude = 21.006
+//            try {
+//                val response = WeatherApi.retrofitService.getWeather(latitude, longitude)
+//
+//                if (response.isSuccessful) {
+//                    val weatherData = response.body()
+//                    Log.i(ContentValues.TAG, weatherData.toString())
+//                    Toast.makeText(requireContext(), weatherData.toString(), Toast.LENGTH_LONG).show()
+//                } else {
+//                    Log.e(ContentValues.TAG, "Error: ${response.errorBody()?.string()}")
+//                }
+//            } catch (e: Exception) {
+//                Log.e(ContentValues.TAG, "Failed to connect to the server", e)
+//                Toast.makeText(
+//                    requireContext(),
+//                    "Failed to connect to the server",
+//                    Toast.LENGTH_LONG
+//                ).show()
+//            }
+//        }
     }
 
     override fun onDestroyView() {
@@ -188,7 +227,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             LatLng(54.79086, 23.89251)
         )
         val request =
-            FindAutocompletePredictionsRequest.builder()
+        FindAutocompletePredictionsRequest.builder()
                 // setLocationBias(bounds)
                 .setLocationRestriction(bounds)
                 .setOrigin(LatLng(-33.8749937, 151.2041382))
@@ -239,14 +278,12 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                         System.currentTimeMillis()
                     )
                 )
-                Toast.makeText(requireContext(), place.latLng?.toString() ?: "", Toast.LENGTH_LONG)
-                    .show()
+//                Toast.makeText(requireContext(), place.latLng?.toString() ?: "", Toast.LENGTH_LONG).show()
             }.addOnFailureListener { exception: Exception ->
                 if (exception is ApiException) {
                     Log.e(ContentValues.TAG, "Place not found: ${exception.message}")
                     val statusCode = exception.statusCode
                 }
             }
-
     }
 }

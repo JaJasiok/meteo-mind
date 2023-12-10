@@ -111,13 +111,28 @@
                         android:layout_height="match_parent"
                         android:gravity="center_horizontal">
 
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_centerVertical="true">
+
+                        <TextView
+                            android:id="@+id/wind_value"
+                            style="?textAppearanceBody1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="10km/h" />
+
                         <TextView
                             android:id="@+id/wind_direction"
                             style="?textAppearanceBody2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_centerVertical="true"
+                            android:layout_below="@id/wind_value"
                             android:text="From west" />
+
+                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="wrap_content"

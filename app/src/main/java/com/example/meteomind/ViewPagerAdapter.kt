@@ -6,15 +6,33 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class ViewPagerAdapter(fragmentActivity: FragmentActivity) :
     FragmentStateAdapter(fragmentActivity) {
+
+    private val fragments = mutableListOf<Fragment>(
+        LoadingFragment(),
+        LoadingFragment()
+    )
+
+    private val fragmentIds = longArrayOf(0, 1)
+
     override fun getItemCount(): Int {
-        return 2 // Number of fragments
+        return fragments.size
     }
 
     override fun createFragment(position: Int): Fragment {
-        return when (position) {
-            0 -> WeatherFragment()
-            1 -> MapFragment()
-            else -> throw IllegalArgumentException("Invalid position")
-        }
+        return fragments[position]
+    }
+
+    override fun getItemId(position: Int): Long {
+        return fragmentIds[position]
+    }
+
+    override fun containsItem(itemId: Long): Boolean {
+        return fragmentIds.contains(itemId)
+    }
+
+    fun updateFragment(position: Int, fragment: Fragment) {
+        fragments[position] = fragment
+        fragmentIds[position] = System.currentTimeMillis()
+        notifyItemChanged(position)
     }
 }
