@@ -28,6 +28,6 @@
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
         
 <!--        <item name="android:windowTranslucentStatus">true</item>-->
-<!--        <item name="android:statusBarColor">@android:color/transparent</item>-->
+        <item name="android:statusBarColor">@color/md_theme_dark_surface</item>
     </style>
 </resources>

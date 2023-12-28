@@ -1,14 +1,19 @@
 package com.example.meteomind
 
+import android.content.Context
+import android.graphics.drawable.Drawable
+import androidx.core.content.ContextCompat
 import kotlin.math.atan2
 
 fun formatHour(timestamp: String) : String {
 
-    val hour = timestamp.substring(11, 13).toInt()
-    val minute = timestamp.substring(14, 16)
-    val formattedHour = if (hour == 0 && minute == "00") "24" else hour.toString()
+    return "00:00"
 
-    return "$formattedHour:$minute"
+//    val hour = timestamp.substring(11, 13).toInt()
+//    val minute = timestamp.substring(14, 16)
+//    val formattedHour = if (hour == 0 && minute == "00") "24" else hour.toString()
+//
+//    return "$formattedHour:$minute"
 }
 
 fun calculateWindDirection(u: Double, v: Double): Float {
@@ -44,5 +49,24 @@ fun getWindDirection(u: Double, v: Double): String {
         in 247.5..292.5 -> "west"
         in 292.5..337.5 -> "northwest"
         else -> "Unknown"
+    }
+}
+
+fun scalePressure(value: Double): Float {
+    val min = 900f
+    val max = 1100f
+
+    if(value < min) return 0.01f
+    if(value > max) return 1f
+
+    return ((value - min) / (max - min)).toFloat()
+}
+
+fun getDrawableByName(context: Context, drawableName: String): Drawable? {
+    val resourceId = context.resources.getIdentifier(drawableName, "drawable", context.packageName)
+    return if (resourceId != 0) {
+        ContextCompat.getDrawable(context, resourceId)
+    } else {
+        null
     }
 }

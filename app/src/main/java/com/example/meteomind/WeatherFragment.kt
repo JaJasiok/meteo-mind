@@ -1,18 +1,24 @@
 package com.example.meteomind
 
 import android.content.ContentValues
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.meteomind.databinding.FragmentWeatherBinding
 import com.google.android.gms.common.api.ApiException
@@ -30,12 +36,14 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.search.SearchView
 import com.google.android.material.search.SearchView.TransitionState
+import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 
-class WeatherFragment : Fragment(R.layout.fragment_weather) {
+class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener {
 
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
@@ -48,6 +56,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         LocationModelFactory((requireActivity().application as MyApplication).repository)
     }
     private lateinit var locationAdapter: LocationAdapter
+
+    private var particleSystem: ParticleSystem? = null
+
+    private lateinit var sensorManager: SensorManager
+    private var accelerometer: Sensor? = null
 
     private lateinit var weatherData: WeatherData
 
@@ -88,6 +101,17 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                     override fun onClick(position: Int) {
                         val location = locations[position]
                         searchBar.setText(location.locationName)
+
+                        lifecycleScope.launch {
+                            val weatherResponse =
+                                WeatherApi.retrofitService.getWeather(location.locationLat, location.locationLng)
+                            Log.d("WeatherFragment", "Getting weather data")
+                            if (weatherResponse.isSuccessful) {
+                                Log.d("WeatherFragment", "Weather data received")
+                                weatherData = weatherResponse.body()!!
+                                updateWeather()
+                            }
+                        }
                         searchView.hide()
                     }
                 })
@@ -110,9 +134,19 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                         getPlaceByResult(result)
                         searchBar.setText(result.locationName)
                         recyclerView.adapter = locationAdapter
+
+                        lifecycleScope.launch {
+                            val weatherResponse =
+                                WeatherApi.retrofitService.getWeather(result.locationLat, result.locationLng)
+                            Log.d("WeatherFragment", "Getting weather data")
+                            if (weatherResponse.isSuccessful) {
+                                Log.d("WeatherFragment", "Weather data received")
+                                weatherData = weatherResponse.body()!!
+                                updateWeather()
+                            }
+                        }
                         searchView.hide()
                         searchResultViewModel.deleteResults()
-
                     }
                 })
             }
@@ -149,6 +183,82 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
             weatherData = arguments?.getParcelable<WeatherData>("weatherData")!!
         }
 
+        val latitude = weatherData.lat
+        val longitude = weatherData.lng
+
+        val geocoder = Geocoder(requireContext(), Locale.getDefault())
+        val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+
+        if (addresses!!.isNotEmpty()) {
+            val address = addresses[0]
+            val cityName = address.locality
+
+            searchBar.hint = cityName
+        }
+
+        sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        val particleView = binding.particleView
+        particleSystem = ParticleSystem(requireContext())
+
+        val random = Random
+        val screenWidth = requireContext().resources.displayMetrics.widthPixels
+//
+        particleView.setParticleSystem(particleSystem!!)
+//
+//        val handler = Handler(Looper.getMainLooper())
+//        handler.post(object : Runnable {
+//            override fun run() {
+//                val randomX = random.nextInt(screenWidth)
+//                particleSystem!!.emitWaterDrop(randomX.toFloat())
+//                particleSystem!!.update()
+//                particleView.invalidate()
+//                handler.postDelayed(this, 10)
+//            }
+//        })
+
+//        val sunlightView = binding.sunlightView
+//        val animator = ObjectAnimator.ofFloat(sunlightView, "rotation", 0f, 360f)
+//        animator.duration = 5000
+//        animator.repeatCount = ObjectAnimator.INFINITE
+//        animator.start()
+
+        updateWeather()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        accelerometer?.also { accelerometer ->
+            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this)
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+//        Log.d("WeatherFragment", "Sensor changed")
+        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            val ax = event.values[0]
+            val ay = event.values[1]
+//            Log.d("WeatherFragment", "Acceleration: $ax, $ay")
+//            particleSystem?.setAcceleration(ax, ay)
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
+        // Do nothing
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    private fun updateWeather() {
         val tempText = binding.weatherView.tempText
         tempText.text = weatherData.timestamps[0].values.t2m.toInt().toString() + "°C"
 
@@ -162,9 +272,15 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         val windArrow = binding.weatherView.windArrow
         windArrow.rotation = calculateWindDirection(weatherData.timestamps[0].values.u10, weatherData.timestamps[0].values.v10)
         val windDirection = binding.weatherView.windDirection
-        windDirection.text = getWindDirection(weatherData.timestamps[0].values.u10, weatherData.timestamps[0].values.v10)
+        windDirection.text = "From " + getWindDirection(weatherData.timestamps[0].values.u10, weatherData.timestamps[0].values.v10)
         val windValue = binding.weatherView.windValue
         windValue.text = sqrt(weatherData.timestamps[0].values.u10.pow(2) + weatherData.timestamps[0].values.v10.pow(2)).toInt().toString() + " km/h"
+
+        val pressureValue = binding.weatherView.pressureValue
+        pressureValue.text = weatherData.timestamps[0].values.sp.toInt().toString() + " hPa"
+
+        val barometer = binding.weatherView.barometerView
+        barometer.setProgress(scalePressure(weatherData.timestamps[0].values.sp))
 
         val hourlyDetailsRecyclerView = binding.weatherView.hourlyDetails
         hourlyDetailsRecyclerView.layoutManager =
@@ -188,35 +304,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
         }
 
         toggleButton.check(R.id.button_precipitation)
-//
-//
-//        lifecycleScope.launch {
-//            val latitude = 49.7128
-//            val longitude = 21.006
-//            try {
-//                val response = WeatherApi.retrofitService.getWeather(latitude, longitude)
-//
-//                if (response.isSuccessful) {
-//                    val weatherData = response.body()
-//                    Log.i(ContentValues.TAG, weatherData.toString())
-//                    Toast.makeText(requireContext(), weatherData.toString(), Toast.LENGTH_LONG).show()
-//                } else {
-//                    Log.e(ContentValues.TAG, "Error: ${response.errorBody()?.string()}")
-//                }
-//            } catch (e: Exception) {
-//                Log.e(ContentValues.TAG, "Failed to connect to the server", e)
-//                Toast.makeText(
-//                    requireContext(),
-//                    "Failed to connect to the server",
-//                    Toast.LENGTH_LONG
-//                ).show()
-//            }
-//        }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     private fun placesAutocomplete(query: String) {
@@ -242,10 +329,19 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
                 if (searchView.text.isNotEmpty()) {
                     val newSearchResults = emptyList<SearchResult>().toMutableList()
                     for (i in 0 until minOf(5, response.autocompletePredictions.size)) {
-                        newSearchResults += SearchResult(
-                            response.autocompletePredictions[i].getPrimaryText(null).toString(),
-                            response.autocompletePredictions[i].placeId
-                        )
+                        val placeId = response.autocompletePredictions[i].placeId
+                        val placeFields = listOf(Place.Field.LAT_LNG)
+                        val fetchPlaceRequest = FetchPlaceRequest.newInstance(placeId, placeFields)
+                        placesClient.fetchPlace(fetchPlaceRequest)
+                            .addOnSuccessListener { fetchPlaceResponse: FetchPlaceResponse ->
+                                val latLng = fetchPlaceResponse.place.latLng
+                                newSearchResults += SearchResult(
+                                    response.autocompletePredictions[i].getPrimaryText(null).toString(),
+                                    placeId,
+                                    latLng?.latitude ?: 0.0,
+                                    latLng?.longitude ?: 0.0
+                                )
+                            }
                     }
                     searchResultViewModel.replaceResults(newSearchResults)
                 }
@@ -264,7 +360,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather) {
 
         val placeFields = listOf(Place.Field.ID, Place.Field.LAT_LNG)
 
-        val request = FetchPlaceRequest.newInstance(result.paceId, placeFields)
+        val request = FetchPlaceRequest.newInstance(result.placeId, placeFields)
 
         placesClient.fetchPlace(request)
             .addOnSuccessListener { response: FetchPlaceResponse ->

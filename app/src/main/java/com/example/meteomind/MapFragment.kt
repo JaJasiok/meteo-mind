@@ -3,10 +3,14 @@ package com.example.meteomind
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -46,8 +50,8 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     private var isViewPagerSwipeEnabled = true
 
     private val polandBounds = LatLngBounds(
-        LatLng(48.0, 13.25),
-        LatLng(55.75, 25.0)
+        LatLng(49.0, 14.0),
+        LatLng(55.0, 25.0)
     )
 
 //    private val minZoom = 4.0f
@@ -200,6 +204,9 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
                 }
             }
         }
+//        setSliderLabels(weatherData.timestamps)
+        setSliderLabels(listOf("24:00", "6:00", "12:00", "18:00"))
+
         speedButton = binding.speedButton
         speedButton.setOnClickListener {
             if (isPlaying) {
@@ -251,7 +258,15 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
                 this@MapFragment.precimaps = preciMaps
                 this@MapFragment.cloudMaps = cloudMaps
 
-                slider.valueTo = this@MapFragment.tempMaps.size.toFloat() - 1
+                withContext(Dispatchers.Main) {
+                    if (tempMaps.size == 1 || preciMaps.size == 1 || cloudMaps.size == 1) {
+                        slider.visibility = View.GONE
+                    }
+                    else {
+                        slider.valueTo = (tempMaps.size - 1).toFloat()
+                        slider.value = 0f
+                    }
+                }
 
                 currentAnimationFrames = this@MapFragment.tempMaps
 
@@ -264,6 +279,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
+                    Log.e("MapFragment", "Failed to read the files", e)
                     Toast.makeText(
                         requireContext(),
                         "Failed to read the files",
@@ -321,6 +337,24 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
 //
 //        mMap.addGroundOverlay(papaj)
 //        startImageAnimation()
+    }
+
+    private fun setSliderLabels(timestamps: List<String>) {
+        val sliderLabelsLayout = binding.sliderLabels
+        sliderLabelsLayout.removeAllViews() // Clear any existing views
+
+        for (timestamp in timestamps) {
+            val textView = TextView(requireContext())
+//            textView.text = formatHour(timestamp)
+            textView.text = timestamp
+            textView.layoutParams = LinearLayout.LayoutParams(
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f // This makes all TextViews have equal width
+            )
+            textView.gravity = Gravity.CENTER
+            sliderLabelsLayout.addView(textView)
+        }
     }
 
     private fun startImageAnimation() {

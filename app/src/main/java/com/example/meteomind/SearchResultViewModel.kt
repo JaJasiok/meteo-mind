@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
-class SearchResult(val locationName: String, val paceId: String = "")
+class SearchResult(var locationName: String, var placeId: String = "", var locationLat: Double = 0.0, var locationLng: Double = 0.0)
 
 class SearchResultViewModel : ViewModel() {
     private val searchResultList = MutableLiveData<List<SearchResult>>()

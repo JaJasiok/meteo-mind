@@ -35,7 +35,7 @@ class HourlyWeatherAdapter(private var weatherData: WeatherData) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val cardView = holder.cardView
 
-        cardView.findViewById<TextView>(R.id.hourly_temp).text = weatherData.timestamps[position].values.t2m.toString() + "°C"
+        cardView.findViewById<TextView>(R.id.hourly_temp).text = weatherData.timestamps[position].values.t2m.toInt().toString() + "°C"
 //
         cardView.findViewById<ImageView>(R.id.hourly_image).setImageDrawable(getDrawableByName(cardView.context, "cloud.xml"))
 //
@@ -48,16 +48,5 @@ class HourlyWeatherAdapter(private var weatherData: WeatherData) :
 
     override fun getItemCount(): Int {
         return weatherData.timestamps.size
-    }
-
-    fun getDrawableByName(context: Context, drawableName: String): Drawable? {
-        val resources = context.resources
-        val packageName = context.packageName
-        val resourceId = resources.getIdentifier(drawableName, "drawable", packageName)
-        return if (resourceId != 0) {
-            resources.getDrawable(resourceId, null)
-        } else {
-            null
-        }
     }
 }

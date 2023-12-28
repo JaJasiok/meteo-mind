@@ -57,14 +57,4 @@ class HourlyWindAdapter(private var weatherData: WeatherData) :
         return weatherData.timestamps.size
     }
 
-    fun getDrawableByName(context: Context, drawableName: String): Drawable? {
-        val resources = context.resources
-        val packageName = context.packageName
-        val resourceId = resources.getIdentifier(drawableName, "drawable", packageName)
-        return if (resourceId != 0) {
-            resources.getDrawable(resourceId, null)
-        } else {
-            null
-        }
-    }
 }
