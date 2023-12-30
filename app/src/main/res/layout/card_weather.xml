@@ -27,7 +27,7 @@
             android:id="@+id/hourly_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:src="@drawable/cloud" />
+            android:src="@drawable/cloud_light" />
 
 
         <TextView

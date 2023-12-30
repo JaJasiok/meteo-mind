@@ -10,6 +10,8 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Geocoder
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -36,7 +38,9 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.search.SearchView
 import com.google.android.material.search.SearchView.TransitionState
+import dev.zotov.phototime.solarized.Solarized
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -57,7 +61,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
     }
     private lateinit var locationAdapter: LocationAdapter
 
-    private var particleSystem: ParticleSystem? = null
+    private lateinit var particleSystem: ParticleSystem
+    private lateinit var particleView: ParticleView
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
@@ -177,10 +182,10 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         divider.isLastItemDecorated = false
         recyclerView.addItemDecoration(divider)
 
-        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            weatherData = arguments?.getParcelable("weatherData", WeatherData::class.java)!!
+        weatherData = if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelable("weatherData", WeatherData::class.java)!!
         }else{
-            weatherData = arguments?.getParcelable<WeatherData>("weatherData")!!
+            arguments?.getParcelable<WeatherData>("weatherData")!!
         }
 
         val latitude = weatherData.lat
@@ -199,30 +204,10 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        val particleView = binding.particleView
+        particleView = binding.particleView
         particleSystem = ParticleSystem(requireContext())
 
-        val random = Random
-        val screenWidth = requireContext().resources.displayMetrics.widthPixels
-//
-        particleView.setParticleSystem(particleSystem!!)
-//
-//        val handler = Handler(Looper.getMainLooper())
-//        handler.post(object : Runnable {
-//            override fun run() {
-//                val randomX = random.nextInt(screenWidth)
-//                particleSystem!!.emitWaterDrop(randomX.toFloat())
-//                particleSystem!!.update()
-//                particleView.invalidate()
-//                handler.postDelayed(this, 10)
-//            }
-//        })
-
-//        val sunlightView = binding.sunlightView
-//        val animator = ObjectAnimator.ofFloat(sunlightView, "rotation", 0f, 360f)
-//        animator.duration = 5000
-//        animator.repeatCount = ObjectAnimator.INFINITE
-//        animator.start()
+        particleView.setParticleSystem(particleSystem)
 
         updateWeather()
     }
@@ -259,6 +244,125 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
     }
 
     private fun updateWeather() {
+        val timestamp = weatherData.timestamps[0].timestamp
+
+        val t2m = weatherData.timestamps[0].values.t2m
+        val sp = weatherData.timestamps[0].values.sp
+        val w10 = weatherData.timestamps[0].values.u10
+        val V10 = weatherData.timestamps[0].values.v10
+        val tcc = weatherData.timestamps[0].values.tcc
+        val tp = weatherData.timestamps[0].values.tp
+
+        if (tp > 0.1){
+            val random = Random
+            val screenWidth = requireContext().resources.displayMetrics.widthPixels
+
+            val handler = Handler(Looper.getMainLooper())
+
+            if(t2m > 1.0){
+                handler.post(object : Runnable {
+                    override fun run() {
+                        val randomX = random.nextInt(screenWidth)
+                        particleSystem.emitWaterDrop(randomX.toFloat())
+                        particleSystem.update()
+                        particleView.invalidate()
+                        handler.postDelayed(this, 10)
+                    }
+                })
+            } else{
+                handler.post(object : Runnable {
+                    override fun run() {
+                        val randomX = random.nextInt(screenWidth)
+                        particleSystem.emitSnowflake(randomX.toFloat())
+                        particleSystem.update()
+                        particleView.invalidate()
+                        handler.postDelayed(this, 10)
+                    }
+                })
+            }
+        }
+
+//        val localDateTime = LocalDateTime.parse(timestamp)
+        val localDateTime = LocalDateTime.now()
+
+        val sunrise = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunrise?.date
+        val sunset = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunset?.date
+
+        var weatherImageFile = "cloud_light"
+
+        if (tp < 0.1){
+            if(tcc < 0.2) {
+                weatherImageFile = if(localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                    "sun"
+                } else {
+                    "moon"
+                }
+            } else if (tcc < 0.35) {
+                weatherImageFile = if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                    "cloud_light_sun"
+                } else {
+                    "cloud_light_moon"
+                }
+            } else if (tcc < 0.5) {
+                weatherImageFile = if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                    "cloud_grey_sun"
+                } else {
+                    "cloud_grey_moon"
+                }
+            } else if (tcc < 0.75) {
+                weatherImageFile = "cloud_grey"
+            } else {
+                weatherImageFile = "cloud_dark"
+            }
+        } else
+            if (t2m < 0) {
+                weatherImageFile = if (tcc < 0.5) {
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                        "cloud_grey_sun_snow"
+                    } else {
+                        "cloud_grey_moon_snow"
+                    }
+                } else if (tcc < 0.75) {
+                    "cloud_grey_snow"
+                } else {
+                    "cloud_dark_snow1"
+                }
+                if(tp > 3.0){
+                    weatherImageFile = "cloud_dark_snow2"
+                }
+            } else if (t2m > 2) {
+                weatherImageFile = if (tcc < 0.5) {
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                        "cloud_grey_sun_rain"
+                    } else {
+                        "cloud_grey_moon_rain"
+                    }
+                } else if (tcc < 0.75) {
+                    "cloud_grey_rain"
+                } else {
+                    "cloud_dark_rain1"
+                }
+                if(tp > 3.0){
+                    weatherImageFile = "cloud_dark_rain2"
+                }
+            } else {
+                weatherImageFile = if (tcc < 0.5) {
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                        "cloud_grey_sun_rain_snow"
+                    } else {
+                        "cloud_grey_moon_rain_snow"
+                    }
+                } else{
+                    "cloud_grey_rain_snow"
+                }
+                if(tp > 3.0){
+                    weatherImageFile = "cloud_dark_rain_snow"
+                }
+            }
+
+        val weatherImage = binding.weatherView.weatherImage
+        weatherImage.setImageDrawable(getDrawableByName(requireContext(), weatherImageFile))
+
         val tempText = binding.weatherView.tempText
         tempText.text = weatherData.timestamps[0].values.t2m.toInt().toString() + "°C"
 
@@ -289,7 +393,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         val hourlyWindAdapter = HourlyWindAdapter(weatherData)
 
         val toggleButton = binding.weatherView.toggleButton
-        toggleButton.addOnButtonCheckedListener { toggleButton, checkedId, isChecked ->
+        toggleButton.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (isChecked) {
                 when (checkedId) {
                     R.id.button_precipitation -> {

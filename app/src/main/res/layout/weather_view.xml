@@ -39,10 +39,11 @@
 
 
             <ImageView
+                android:id="@+id/weather_image"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:layout_alignParentEnd="true"
-                android:src="@drawable/cloud" />
+                android:src="@drawable/cloud_light" />
 
         </RelativeLayout>
 
