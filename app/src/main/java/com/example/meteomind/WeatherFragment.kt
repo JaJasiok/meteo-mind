@@ -248,8 +248,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
 
         val t2m = weatherData.timestamps[0].values.t2m
         val sp = weatherData.timestamps[0].values.sp
-        val w10 = weatherData.timestamps[0].values.u10
-        val V10 = weatherData.timestamps[0].values.v10
+        val u10 = weatherData.timestamps[0].values.u10
+        val v10 = weatherData.timestamps[0].values.v10
         val tcc = weatherData.timestamps[0].values.tcc
         val tp = weatherData.timestamps[0].values.tp
 
@@ -288,7 +288,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         val sunrise = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunrise?.date
         val sunset = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunset?.date
 
-        var weatherImageFile = "cloud_light"
+        var weatherImageFile: String
 
         if (tp < 0.1){
             if(tcc < 0.2) {
@@ -364,7 +364,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         weatherImage.setImageDrawable(getDrawableByName(requireContext(), weatherImageFile))
 
         val tempText = binding.weatherView.tempText
-        tempText.text = weatherData.timestamps[0].values.t2m.toInt().toString() + "°C"
+        tempText.text = t2m.toInt().toString()
 
         val hourlyWeatherRecyclerView = binding.weatherView.hourlyWeather
 
@@ -374,23 +374,25 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         hourlyWeatherRecyclerView.adapter = hourlyWeatherAdapter
 
         val windArrow = binding.weatherView.windArrow
-        windArrow.rotation = calculateWindDirection(weatherData.timestamps[0].values.u10, weatherData.timestamps[0].values.v10)
+        windArrow.rotation = calculateWindDirection(u10, v10)
         val windDirection = binding.weatherView.windDirection
-        windDirection.text = "From " + getWindDirection(weatherData.timestamps[0].values.u10, weatherData.timestamps[0].values.v10)
+        windDirection.text = getWindDirection(u10, v10)
         val windValue = binding.weatherView.windValue
-        windValue.text = sqrt(weatherData.timestamps[0].values.u10.pow(2) + weatherData.timestamps[0].values.v10.pow(2)).toInt().toString() + " km/h"
+        windValue.text = sqrt(u10.pow(2) + v10.pow(2)).toInt().toString()
 
         val pressureValue = binding.weatherView.pressureValue
-        pressureValue.text = weatherData.timestamps[0].values.sp.toInt().toString() + " hPa"
+        pressureValue.text = sp.toInt().toString()
 
         val barometer = binding.weatherView.barometerView
-        barometer.setProgress(scalePressure(weatherData.timestamps[0].values.sp))
+        barometer.setProgress(scalePressure(sp))
 
         val hourlyDetailsRecyclerView = binding.weatherView.hourlyDetails
         hourlyDetailsRecyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         val hourlyPrecipitationAdapter = HourlyPrecipitationAdapter(weatherData)
         val hourlyWindAdapter = HourlyWindAdapter(weatherData)
+
+        hourlyDetailsRecyclerView.adapter = hourlyPrecipitationAdapter
 
         val toggleButton = binding.weatherView.toggleButton
         toggleButton.addOnButtonCheckedListener { _, checkedId, isChecked ->

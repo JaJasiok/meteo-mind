@@ -1,14 +1,12 @@
 package com.example.meteomind
 
-import android.content.Context
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
-import kotlin.math.round
+import java.util.Locale
 
 class HourlyPrecipitationAdapter(private var weatherData: WeatherData) :
     RecyclerView.Adapter<HourlyPrecipitationAdapter.ViewHolder>() {
@@ -36,15 +34,14 @@ class HourlyPrecipitationAdapter(private var weatherData: WeatherData) :
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val cardView = holder.cardView
 
-        var precipitationText = ""
+        var precipitationValue = ""
 
         when(weatherData.timestamps[position].values.tp){
             0.0 -> {}
-            in 0.0..0.25 -> precipitationText = "<0.25"
-            else -> precipitationText = String.format("%.1f", weatherData.timestamps[position].values.tp)
-        }
+            in 0.0..0.25 -> precipitationValue = "<0.25"
+            else -> precipitationValue = String.format(Locale.US, "%.1f", weatherData.timestamps[position].values.tp)        }
 
-        cardView.findViewById<TextView>(R.id.precipitation_value).text = precipitationText
+        cardView.findViewById<TextView>(R.id.precipitation_value).text = precipitationValue
 
         var precipitationImage = "precipitation1"
 

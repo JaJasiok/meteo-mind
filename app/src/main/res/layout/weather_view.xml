@@ -22,20 +22,31 @@
                 style="?textAppearanceHeadline6"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Now" />
+                android:text="@string/now" />
 
-            <TextView
-                android:id="@+id/temp_text"
-                style="?textAppearanceHeadline6"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/now_text"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginBottom="16dp"
-                android:text="21°C"
-                android:textSize="60sp" />
+                android:layout_margin="16dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/temp_text"
+                    style="?textAppearanceHeadline6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="21"
+                    android:textSize="60sp" />
+
+                <TextView
+                    style="?textAppearanceHeadline6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/celsius_degrees"
+                    android:textSize="60sp" />
+
+            </LinearLayout>
 
 
             <ImageView
@@ -52,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Hourly forecast" />
+            android:text="@string/hourly_forecast" />
 
         <com.google.android.material.card.MaterialCardView
             style="?attr/materialCardViewFilledStyle"
@@ -74,7 +85,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Current conditions" />
+            android:text="@string/current_conditions" />
 
         <GridLayout
             android:layout_width="match_parent"
@@ -104,7 +115,7 @@
                         style="?textAppearanceTitleSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Wind" />
+                        android:text="@string/wind" />
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -114,23 +125,55 @@
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_centerVertical="true">
+                            android:layout_centerVertical="true"
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:id="@+id/wind_value"
-                            style="?textAppearanceBody1"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="10km/h" />
+                            <LinearLayout
+                                android:id="@+id/wind_value_layout"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
 
-                        <TextView
-                            android:id="@+id/wind_direction"
-                            style="?textAppearanceBody2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_below="@id/wind_value"
-                            android:text="From west" />
+                                <TextView
+                                    android:id="@+id/wind_value"
+                                    style="?textAppearanceBody1"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="10"
+                                    android:textSize="24sp" />
+
+                                <TextView
+                                    style="?textAppearanceBody2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="2dp"
+                                    android:text="@string/km_h"
+                                    android:textSize="12sp" />
+
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    style="?textAppearanceBody2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="12sp"
+                                    android:text="@string/from" />
+
+                                <TextView
+                                    android:id="@+id/wind_direction"
+                                    style="?textAppearanceBody2"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="west"
+                                    android:textSize="12sp" />
+
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -146,7 +189,8 @@
                                 style="?textAppearanceBody2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="N" />
+                                android:text="@string/north"
+                                android:textSize="12sp" />
 
                             <ImageView
                                 android:id="@+id/wind_arrow"
@@ -157,11 +201,9 @@
 
                         </LinearLayout>
 
-
                     </RelativeLayout>
 
                 </LinearLayout>
-
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -185,7 +227,7 @@
                         style="?textAppearanceTitleSmall"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Pressure" />
+                        android:text="@string/pressure" />
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -195,15 +237,24 @@
                         <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_centerVertical="true">
+                            android:layout_centerVertical="true"
+                            android:orientation="horizontal">
 
                             <TextView
                                 android:id="@+id/pressure_value"
                                 style="?textAppearanceBody1"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="1002 hPa" />
+                                android:text="1002"
+                                android:textSize="24sp" />
+
+                            <TextView
+                                style="?textAppearanceBody1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingStart="2dp"
+                                android:text="@string/hpa"
+                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -214,13 +265,16 @@
                             android:gravity="center"
                             android:orientation="vertical">
 
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="12sp" />
+
                             <com.example.meteomind.BarometerView
+                                android:id="@+id/barometer_view"
                                 android:layout_width="50dp"
-                                android:layout_height="50dp"
-                                android:id="@+id/barometer_view"/>
+                                android:layout_height="50dp" />
 
                         </LinearLayout>
-
 
                     </RelativeLayout>
 
@@ -235,7 +289,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Hourly details" />
+            android:text="@string/hourly_details" />
 
         <com.google.android.material.card.MaterialCardView
             style="?attr/materialCardViewFilledStyle"
@@ -262,14 +316,14 @@
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Precipitation" />
+                        android:text="@string/precipitation" />
 
                     <Button
                         android:id="@+id/button_wind"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Wind" />
+                        android:text="@string/wind" />
 
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 

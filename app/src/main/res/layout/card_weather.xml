@@ -13,22 +13,33 @@
         android:orientation="vertical"
         android:padding="8dp">
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            android:gravity="center">
+
         <TextView
             android:id="@+id/hourly_temp"
             style="?textAppearanceTitleSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:gravity="center"
-            android:text="21°C" />
+            android:text="21" />
 
+            <TextView
+                style="?textAppearanceTitleSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/celsius_degrees" />
+
+        </LinearLayout>
 
         <ImageView
             android:id="@+id/hourly_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/cloud_light" />
-
 
         <TextView
             android:id="@+id/hourly_hour"
@@ -37,5 +48,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="12:00" />
+
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>

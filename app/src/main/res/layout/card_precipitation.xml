@@ -6,10 +6,10 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="120dp"
         android:background="@macro/m3_comp_filled_card_container_color"
         android:clipToPadding="false"
-        android:gravity="center"
+        android:gravity="bottom"
         android:orientation="vertical"
         android:padding="8dp">
 
@@ -22,20 +22,21 @@
             android:gravity="center"
             android:text="&lt;0.25" />
 
-
         <ImageView
             android:id="@+id/precipitation_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/precipitation1" />
 
-
         <TextView
             android:id="@+id/precipitation_hour"
             style="?textAppearanceBodySmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="12:00" />
+
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>

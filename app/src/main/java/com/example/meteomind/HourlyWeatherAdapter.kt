@@ -50,7 +50,7 @@ class HourlyWeatherAdapter(private var weatherData: WeatherData) :
         val sunrise = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunrise?.date
         val sunset = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunset?.date
 
-        cardView.findViewById<TextView>(R.id.hourly_temp).text = t2m.toInt().toString() + "°C"
+        cardView.findViewById<TextView>(R.id.hourly_temp).text = t2m.toInt().toString()
 
         var weatherImageFile: String
 

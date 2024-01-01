@@ -61,4 +61,17 @@
     <string name="attachment_summary_on">Automatically download attachments for incoming emails
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="now">Now</string>
+    <string name="celsius_degrees">°C</string>
+    <string name="hourly_forecast">Hourly forecast</string>
+    <string name="current_conditions">Current conditions</string>
+    <string name="wind">Wind</string>
+    <string name="km_h">km/h</string>
+    <string name="north">N</string>
+    <string name="pressure">Pressure</string>
+    <string name="hpa">hPa</string>
+    <string name="hourly_details">Hourly details</string>
+    <string name="precipitation">Precipitation</string>
+    <string name="from">"From "</string>
+    <string name="remove">Remove</string>
 </resources>

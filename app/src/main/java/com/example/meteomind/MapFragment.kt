@@ -124,18 +124,18 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         cloudFab = binding.cloudFab
 
         layersFab.setOnClickListener {
-            if (!isExpanded) {
+            isExpanded = if (!isExpanded) {
                 tempFab.show()
                 preciFab.show()
                 cloudFab.show()
                 layersFab.setImageResource(R.drawable.layers_24px)
-                isExpanded = true
+                true
             } else {
                 tempFab.hide()
                 preciFab.hide()
                 cloudFab.hide()
                 layersFab.setImageResource(activeLayerIcon)
-                isExpanded = false
+                false
             }
         }
 
@@ -205,7 +205,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
             }
         }
 //        setSliderLabels(weatherData.timestamps)
-        setSliderLabels(listOf("24:00", "6:00", "12:00", "18:00"))
+//        setSliderLabels(listOf("24:00", "6:00", "12:00", "18:00"))
 
         speedButton = binding.speedButton
         speedButton.setOnClickListener {
