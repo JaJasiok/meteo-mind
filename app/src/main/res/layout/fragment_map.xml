@@ -58,12 +58,18 @@
                 style="?attr/floatingActionButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
-                android:src="@drawable/layers_24px" />
+                android:src="@drawable/layers_24px"
+                app:elevation="0dp"/>
 
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
+
+    <ImageView
+        android:id="@+id/legend"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"

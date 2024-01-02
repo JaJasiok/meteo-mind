@@ -1,6 +1,7 @@
 package com.example.meteomind
 
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -70,6 +71,10 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     private lateinit var precimaps: List<BitmapDescriptor>
     private lateinit var cloudMaps: List<BitmapDescriptor>
 
+    private lateinit var tempLegend: Drawable
+    private lateinit var preciLegend: Drawable
+    private lateinit var cloudLegend: Drawable
+
     private var activeLayerIcon = R.drawable.thermometer_24px
 
 
@@ -123,6 +128,8 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         preciFab = binding.preciFab
         cloudFab = binding.cloudFab
 
+        val legend = binding.legend
+
         layersFab.setOnClickListener {
             isExpanded = if (!isExpanded) {
                 tempFab.show()
@@ -140,8 +147,9 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         }
 
         tempFab.setOnClickListener {
-            if (currentAnimationFrames == precimaps || currentAnimationFrames == cloudMaps) {
-                currentAnimationFrames = tempMaps
+            if (currentAnimationFrames != tempMaps) {
+                changeMapType(tempMaps)
+                legend.setImageDrawable(tempLegend)
             }
             tempFab.hide()
             preciFab.hide()
@@ -153,8 +161,9 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         }
 
         preciFab.setOnClickListener {
-            if (currentAnimationFrames == tempMaps || currentAnimationFrames == cloudMaps) {
-                currentAnimationFrames = precimaps
+            if (currentAnimationFrames != precimaps) {
+                changeMapType(precimaps)
+                legend.setImageDrawable(preciLegend)
             }
             tempFab.hide()
             preciFab.hide()
@@ -166,8 +175,9 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         }
 
         cloudFab.setOnClickListener {
-            if (currentAnimationFrames == tempMaps || currentAnimationFrames == precimaps) {
-                currentAnimationFrames = cloudMaps
+            if (currentAnimationFrames != cloudMaps) {
+                changeMapType(cloudMaps)
+                legend.setImageDrawable(cloudLegend)
             }
             tempFab.hide()
             preciFab.hide()
@@ -243,13 +253,22 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
 
                 files?.forEach { file ->
                     if (file.isFile && file.extension == "png") {
-                        // Create a BitmapDescriptor from the file and add it to the appropriate list
-                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                        val bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap)
-                        when {
-                            file.name.contains("t2m") -> tempMaps.add(bitmapDescriptor)
-                            file.name.contains("tp") -> preciMaps.add(bitmapDescriptor)
-                            file.name.contains("tcc") -> cloudMaps.add(bitmapDescriptor)
+
+                        if (file.name.contains("legend")) {
+                            val drawable = Drawable.createFromPath(file.absolutePath)
+                            when (file.name) {
+                                "t2m_legend.png" -> tempLegend = drawable!!
+                                "tp_legend.png" -> preciLegend = drawable!!
+                                "tcc_legend.png" -> cloudLegend = drawable!!
+                            }
+                        } else {
+                            val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                            val bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap)
+                            when {
+                                file.name.contains("t2m") -> tempMaps.add(bitmapDescriptor)
+                                file.name.contains("tp") -> preciMaps.add(bitmapDescriptor)
+                                file.name.contains("tcc") -> cloudMaps.add(bitmapDescriptor)
+                            }
                         }
                     }
                 }
@@ -261,14 +280,14 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
                 withContext(Dispatchers.Main) {
                     if (tempMaps.size == 1 || preciMaps.size == 1 || cloudMaps.size == 1) {
                         slider.visibility = View.GONE
-                    }
-                    else {
+                    } else {
                         slider.valueTo = (tempMaps.size - 1).toFloat()
                         slider.value = 0f
                     }
                 }
 
                 currentAnimationFrames = this@MapFragment.tempMaps
+                legend.setImageDrawable(tempLegend)
 
                 layersFab.setImageResource(R.drawable.thermometer_24px)
                 activeLayerIcon = R.drawable.thermometer_24px
@@ -312,14 +331,6 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
 
         mMap.setOnCameraIdleListener {
             if (isMovingCamera) {
-//                val zoom = mMap.cameraPosition.zoom
-//                if (zoom < minZoom) {
-//                    mMap.animateCamera(CameraUpdateFactory.zoomTo(minZoom))
-//                }
-//                else if (zoom > maxZoom) {
-//                    mMap.animateCamera(CameraUpdateFactory.zoomTo(maxZoom))
-//                }
-
                 if (!polandBounds.contains(mMap.projection.visibleRegion.latLngBounds.northeast)
                     && !polandBounds.contains(mMap.projection.visibleRegion.latLngBounds.southwest)
                 ) {
@@ -329,14 +340,6 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
             isMovingCamera = false
             viewPager.isUserInputEnabled = true
         }
-
-//        val papaj = GroundOverlayOptions()
-//            .image(BitmapDescriptorFactory.fromResource(R.drawable.papaj))
-//            .positionFromBounds(polandBounds)
-//            .transparency(0.5f)
-//
-//        mMap.addGroundOverlay(papaj)
-//        startImageAnimation()
     }
 
     private fun setSliderLabels(timestamps: List<String>) {
@@ -360,12 +363,20 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     private fun startImageAnimation() {
         handler.post(object : Runnable {
             override fun run() {
-                // Update the ground overlay image with the next frame
                 updateGroundOverlayImage()
                 handler.postDelayed(this, frameDelay)
                 isPlaying = true
             }
         })
+    }
+
+    private fun changeMapType(newMapType: List<BitmapDescriptor>) {
+        handler.removeCallbacksAndMessages(null)
+        isPlaying = false
+
+        currentAnimationFrames = newMapType
+
+        startImageAnimation()
     }
 
     private fun updateGroundOverlayImage() {
