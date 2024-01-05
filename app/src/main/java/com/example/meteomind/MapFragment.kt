@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -63,7 +64,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     private var isPlaying: Boolean = false
 
     private var frameIndex = 0
-    private val handler = Handler()
+    private val handler = Handler(Looper.getMainLooper())
     private var frameDelay: Long = 1000
 
     private lateinit var currentAnimationFrames: List<BitmapDescriptor>
@@ -377,6 +378,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         currentAnimationFrames = newMapType
 
         startImageAnimation()
+        updateGroundOverlayImage()
     }
 
     private fun updateGroundOverlayImage() {

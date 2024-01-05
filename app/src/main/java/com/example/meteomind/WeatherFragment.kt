@@ -157,7 +157,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
             }
         }
 
-        searchView.addTransitionListener { searchView: SearchView?, previousState: TransitionState?, newState: TransitionState ->
+        searchView.addTransitionListener { _: SearchView?, _: TransitionState?, newState: TransitionState ->
             val tabLayout = (activity as MainActivity).tabLayout
             if (newState == TransitionState.SHOWING) {
                 tabLayout.visibility = View.GONE
@@ -484,7 +484,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
             }.addOnFailureListener { exception: Exception ->
                 if (exception is ApiException) {
                     Log.e(ContentValues.TAG, "Place not found: ${exception.message}")
-                    val statusCode = exception.statusCode
                 }
             }
     }
