@@ -37,8 +37,8 @@ class HourlyPrecipitationAdapter(private var weatherData: WeatherData) :
         var precipitationValue = ""
 
         when(weatherData.timestamps[position].values.tp){
-            0.0 -> {}
-            in 0.0..0.25 -> precipitationValue = "<0.25"
+            in 0.0..0.05 -> {}
+            in 0.05..0.25 -> precipitationValue = "<0.25"
             else -> precipitationValue = String.format(Locale.US, "%.1f", weatherData.timestamps[position].values.tp)        }
 
         cardView.findViewById<TextView>(R.id.precipitation_value).text = precipitationValue

@@ -7,7 +7,11 @@ import kotlin.math.atan2
 
 fun formatHour(timestamp: String) : String {
 
-    return "00:00"
+    var num = timestamp.toInt()
+    num = (num * 6) % 24
+
+    if (num < 10) return "0$num:00"
+    return "$num:00"
 
 //    val hour = timestamp.substring(11, 13).toInt()
 //    val minute = timestamp.substring(14, 16)

@@ -95,33 +95,6 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
             childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-//        animationFrames1 = listOf(
-//            BitmapDescriptorFactory.fromResource(R.drawable.o1),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o2),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o3),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o4),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o5),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o6)
-//        )
-//
-//        animationFrames2 = listOf(
-//            BitmapDescriptorFactory.fromResource(R.drawable.s1),
-//            BitmapDescriptorFactory.fromResource(R.drawable.s2),
-//            BitmapDescriptorFactory.fromResource(R.drawable.s3),
-//            BitmapDescriptorFactory.fromResource(R.drawable.s4),
-//            BitmapDescriptorFactory.fromResource(R.drawable.s5),
-//            BitmapDescriptorFactory.fromResource(R.drawable.s6)
-//        )
-//
-//        animationFrames3 = listOf(
-//            BitmapDescriptorFactory.fromResource(R.drawable.o1),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o2),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o3),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o4),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o5),
-//            BitmapDescriptorFactory.fromResource(R.drawable.o6)
-//        )
-//
         currentAnimationFrames = listOf()
 
         layersFab = binding.layersFab
@@ -231,7 +204,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
             }
         }
 
-        viewPager = requireActivity().findViewById(R.id.viewPager)
+        viewPager = requireActivity().findViewById(R.id.view_pager)
 
         viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {

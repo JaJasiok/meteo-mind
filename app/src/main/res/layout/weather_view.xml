@@ -48,7 +48,6 @@
 
             </LinearLayout>
 
-
             <ImageView
                 android:id="@+id/weather_image"
                 android:layout_width="150dp"

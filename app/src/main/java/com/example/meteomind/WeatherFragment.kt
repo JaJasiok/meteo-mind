@@ -22,6 +22,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewpager2.widget.ViewPager2
 import com.example.meteomind.databinding.FragmentWeatherBinding
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.maps.model.LatLng
@@ -63,6 +64,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
 
     private lateinit var particleSystem: ParticleSystem
     private lateinit var particleView: ParticleView
+    private var currentRunnable: Runnable? = null
+
 
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
@@ -109,7 +112,10 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
 
                         lifecycleScope.launch {
                             val weatherResponse =
-                                WeatherApi.retrofitService.getWeather(location.locationLat, location.locationLng)
+                                WeatherApi.retrofitService.getWeather(
+                                    location.locationLat,
+                                    location.locationLng
+                                )
                             Log.d("WeatherFragment", "Getting weather data")
                             if (weatherResponse.isSuccessful) {
                                 Log.d("WeatherFragment", "Weather data received")
@@ -142,7 +148,10 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
 
                         lifecycleScope.launch {
                             val weatherResponse =
-                                WeatherApi.retrofitService.getWeather(result.locationLat, result.locationLng)
+                                WeatherApi.retrofitService.getWeather(
+                                    result.locationLat,
+                                    result.locationLng
+                                )
                             Log.d("WeatherFragment", "Getting weather data")
                             if (weatherResponse.isSuccessful) {
                                 Log.d("WeatherFragment", "Weather data received")
@@ -178,15 +187,23 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
                 }
             }
 
+        val viewPager = requireActivity().findViewById<ViewPager2>(R.id.view_pager)
+        val searchView = binding.searchView
+
+        searchView.addTransitionListener { _, _, newState ->
+            viewPager.isUserInputEnabled = newState != TransitionState.SHOWING
+        }
+
         val divider = MaterialDividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
         divider.isLastItemDecorated = false
         recyclerView.addItemDecoration(divider)
 
-        weatherData = if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            arguments?.getParcelable("weatherData", WeatherData::class.java)!!
-        }else{
-            arguments?.getParcelable<WeatherData>("weatherData")!!
-        }
+        weatherData =
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                arguments?.getParcelable("weatherData", WeatherData::class.java)!!
+            } else {
+                arguments?.getParcelable<WeatherData>("weatherData")!!
+            }
 
         val latitude = weatherData.lat
         val longitude = weatherData.lng
@@ -253,32 +270,38 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         val tcc = weatherData.timestamps[0].values.tcc
         val tp = weatherData.timestamps[0].values.tp
 
-        if (tp > 0.1){
+        if (tp > 0.1) {
             val random = Random
             val screenWidth = requireContext().resources.displayMetrics.widthPixels
 
             val handler = Handler(Looper.getMainLooper())
 
-            if(t2m > 1.0){
-                handler.post(object : Runnable {
-                    override fun run() {
-                        val randomX = random.nextInt(screenWidth)
-                        particleSystem.emitWaterDrop(randomX.toFloat())
-                        particleSystem.update()
-                        particleView.invalidate()
-                        handler.postDelayed(this, 10)
+            // Only create and post a new Runnable if currentRunnable is null
+            if (currentRunnable == null) {
+                if (t2m > 1.0) {
+                    currentRunnable = object : Runnable {
+                        override fun run() {
+                            val randomX = random.nextInt(screenWidth)
+                            particleSystem.emitWaterDrop(randomX.toFloat())
+                            particleSystem.update()
+                            particleView.invalidate()
+                            handler.postDelayed(this, 10)
+                        }
                     }
-                })
-            } else{
-                handler.post(object : Runnable {
-                    override fun run() {
-                        val randomX = random.nextInt(screenWidth)
-                        particleSystem.emitSnowflake(randomX.toFloat())
-                        particleSystem.update()
-                        particleView.invalidate()
-                        handler.postDelayed(this, 10)
+                } else {
+                    currentRunnable = object : Runnable {
+                        override fun run() {
+                            val randomX = random.nextInt(screenWidth)
+                            particleSystem.emitSnowflake(randomX.toFloat())
+                            particleSystem.update()
+                            particleView.invalidate()
+                            handler.postDelayed(this, 10)
+                        }
                     }
-                })
+                }
+
+                // Post the new Runnable to the Handler
+                handler.post(currentRunnable!!)
             }
         }
 
@@ -290,25 +313,28 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
 
         var weatherImageFile: String
 
-        if (tp < 0.1){
-            if(tcc < 0.2) {
-                weatherImageFile = if(localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                    "sun"
-                } else {
-                    "moon"
-                }
+        if (tp < 0.1) {
+            if (tcc < 0.2) {
+                weatherImageFile =
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
+                        "sun"
+                    } else {
+                        "moon"
+                    }
             } else if (tcc < 0.35) {
-                weatherImageFile = if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                    "cloud_light_sun"
-                } else {
-                    "cloud_light_moon"
-                }
+                weatherImageFile =
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
+                        "cloud_light_sun"
+                    } else {
+                        "cloud_light_moon"
+                    }
             } else if (tcc < 0.5) {
-                weatherImageFile = if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                    "cloud_grey_sun"
-                } else {
-                    "cloud_grey_moon"
-                }
+                weatherImageFile =
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
+                        "cloud_grey_sun"
+                    } else {
+                        "cloud_grey_moon"
+                    }
             } else if (tcc < 0.75) {
                 weatherImageFile = "cloud_grey"
             } else {
@@ -317,7 +343,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         } else
             if (t2m < 0) {
                 weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
                         "cloud_grey_sun_snow"
                     } else {
                         "cloud_grey_moon_snow"
@@ -327,12 +353,12 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
                 } else {
                     "cloud_dark_snow1"
                 }
-                if(tp > 3.0){
+                if (tp > 3.0) {
                     weatherImageFile = "cloud_dark_snow2"
                 }
             } else if (t2m > 2) {
                 weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
                         "cloud_grey_sun_rain"
                     } else {
                         "cloud_grey_moon_rain"
@@ -342,23 +368,25 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
                 } else {
                     "cloud_dark_rain1"
                 }
-                if(tp > 3.0){
+                if (tp > 3.0) {
                     weatherImageFile = "cloud_dark_rain2"
                 }
             } else {
                 weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
+                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
                         "cloud_grey_sun_rain_snow"
                     } else {
                         "cloud_grey_moon_rain_snow"
                     }
-                } else{
+                } else {
                     "cloud_grey_rain_snow"
                 }
-                if(tp > 3.0){
+                if (tp > 3.0) {
                     weatherImageFile = "cloud_dark_rain_snow"
                 }
             }
+
+//        Toast.makeText(requireContext(), weatherImageFile, Toast.LENGTH_LONG).show()
 
         val weatherImage = binding.weatherView.weatherImage
         weatherImage.setImageDrawable(getDrawableByName(requireContext(), weatherImageFile))
@@ -420,7 +448,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
             LatLng(54.79086, 23.89251)
         )
         val request =
-        FindAutocompletePredictionsRequest.builder()
+            FindAutocompletePredictionsRequest.builder()
                 // setLocationBias(bounds)
                 .setLocationRestriction(bounds)
                 .setOrigin(LatLng(-33.8749937, 151.2041382))
@@ -442,7 +470,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
                             .addOnSuccessListener { fetchPlaceResponse: FetchPlaceResponse ->
                                 val latLng = fetchPlaceResponse.place.latLng
                                 newSearchResults += SearchResult(
-                                    response.autocompletePredictions[i].getPrimaryText(null).toString(),
+                                    response.autocompletePredictions[i].getPrimaryText(null)
+                                        .toString(),
                                     placeId,
                                     latLng?.latitude ?: 0.0,
                                     latLng?.longitude ?: 0.0
