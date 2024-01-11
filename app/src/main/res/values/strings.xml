@@ -16,4 +16,6 @@
     <string name="precipitation">Precipitation</string>
     <string name="from">"From "</string>
     <string name="remove">Remove</string>
+    <string name="low">Low</string>
+    <string name="high">High</string>
 </resources>

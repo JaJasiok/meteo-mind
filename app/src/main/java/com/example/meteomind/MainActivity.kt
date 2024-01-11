@@ -73,6 +73,12 @@ class MainActivity : AppCompatActivity() {
 
                 Log.d("MainActivity", "Zip file received and saved to cache")
 
+                // Delete all files in the target directory before unzipping
+                val directory = File(cacheDir, "maps")
+                if (directory.exists()) {
+                    directory.deleteRecursively()
+                }
+                
                 // Unpack the zip file
                 val zis = ZipInputStream(zipFile.inputStream())
                 var entry = zis.nextEntry

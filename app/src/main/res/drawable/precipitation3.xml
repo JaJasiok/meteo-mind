@@ -7,6 +7,6 @@
       android:pathData="M63.63,148.7L207.3,148.7a34,34 45,0 1,34 34v24.6a34,34 135,0 1,-34 34L63.63,241.3a34,34 45,0 1,-34 -34v-24.6a34,34 135,0 1,34 -34z"
       android:strokeLineJoin="bevel"
       android:strokeWidth="5.36673"
-      android:fillColor="#a8c7fb"
+      android:fillColor="#7aaaf8"
       android:strokeLineCap="round"/>
 </vector>

@@ -1,13 +1,8 @@
 package com.example.meteomind
 
 import android.content.ContentValues
-import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.location.Geocoder
 import android.os.Bundle
 import android.os.Handler
@@ -40,6 +35,10 @@ import com.google.android.material.divider.MaterialDividerItemDecoration
 import com.google.android.material.search.SearchView
 import com.google.android.material.search.SearchView.TransitionState
 import dev.zotov.phototime.solarized.Solarized
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.Locale
@@ -48,7 +47,7 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 
-class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener {
+class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListener*/ {
 
     private var _binding: FragmentWeatherBinding? = null
     private val binding get() = _binding!!
@@ -66,9 +65,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
     private lateinit var particleView: ParticleView
     private var currentRunnable: Runnable? = null
 
-
-    private lateinit var sensorManager: SensorManager
-    private var accelerometer: Sensor? = null
+//    private lateinit var sensorManager: SensorManager
+//    private var accelerometer: Sensor? = null
 
     private lateinit var weatherData: WeatherData
 
@@ -80,6 +78,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         return binding.root
     }
 
+    @OptIn(FlowPreview::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -144,6 +143,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
                         val result = results[position]
                         getPlaceByResult(result)
                         searchBar.setText(result.locationName)
+                        searchView.editText.text.clear()
                         recyclerView.adapter = locationAdapter
 
                         lifecycleScope.launch {
@@ -175,9 +175,11 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
             }
         }
 
+        val searchFlow = MutableSharedFlow<String>(replay = 1)
+
         searchView
             .editText
-            .doOnTextChanged { text, start, before, count ->
+            .doOnTextChanged { text, _, _, _ ->
                 if (text.isNullOrEmpty()) {
                     searchResultViewModel.deleteResults()
                     recyclerView.adapter = locationAdapter
@@ -186,6 +188,16 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
                     placesAutocomplete(text.toString())
                 }
             }
+
+        lifecycleScope.launch {
+            searchFlow
+                .debounce(300) // delay of 300 milliseconds
+                .distinctUntilChanged() // only proceed if the text has changed
+                .collect { query ->
+                    recyclerView.adapter = searchResultAdapter
+                    placesAutocomplete(query)
+                }
+        }
 
         val viewPager = requireActivity().findViewById<ViewPager2>(R.id.view_pager)
         val searchView = binding.searchView
@@ -218,8 +230,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
             searchBar.hint = cityName
         }
 
-        sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+//        sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+//        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
         particleView = binding.particleView
         particleSystem = ParticleSystem(requireContext())
@@ -229,31 +241,31 @@ class WeatherFragment : Fragment(R.layout.fragment_weather), SensorEventListener
         updateWeather()
     }
 
-    override fun onResume() {
-        super.onResume()
-        accelerometer?.also { accelerometer ->
-            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        accelerometer?.also { accelerometer ->
+//            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+//        }
+//    }
+//
+//    override fun onPause() {
+//        super.onPause()
+//        sensorManager.unregisterListener(this)
+//    }
 
-    override fun onPause() {
-        super.onPause()
-        sensorManager.unregisterListener(this)
-    }
+//    override fun onSensorChanged(event: SensorEvent) {
+////        Log.d("WeatherFragment", "Sensor changed")
+//        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+//            val ax = event.values[0]
+//            val ay = event.values[1]
+////            Log.d("WeatherFragment", "Acceleration: $ax, $ay")
+////            particleSystem?.setAcceleration(ax, ay)
+//        }
+//    }
 
-    override fun onSensorChanged(event: SensorEvent) {
-//        Log.d("WeatherFragment", "Sensor changed")
-        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-            val ax = event.values[0]
-            val ay = event.values[1]
-//            Log.d("WeatherFragment", "Acceleration: $ax, $ay")
-//            particleSystem?.setAcceleration(ax, ay)
-        }
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        // Do nothing
-    }
+//    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
+//        // Do nothing
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()
