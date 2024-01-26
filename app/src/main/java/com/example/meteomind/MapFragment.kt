@@ -210,7 +210,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
             override fun onPageSelected(position: Int) {
                 // Enable or disable swipe based on the current position
                 isViewPagerSwipeEnabled =
-                    position == 1 // Assuming the map fragment is at position 0
+                    position == 1 // Assuming the map fragment is at position 1
             }
         }
 
@@ -258,15 +258,13 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
                         slider.valueTo = (tempMaps.size - 1).toFloat()
                         slider.value = 0f
                     }
-                }
 
-                currentAnimationFrames = this@MapFragment.tempMaps
-                legend.setImageDrawable(tempLegend)
+                    currentAnimationFrames = this@MapFragment.tempMaps
+                    legend.setImageDrawable(tempLegend)
 
-                layersFab.setImageResource(R.drawable.thermometer_24px)
-                activeLayerIcon = R.drawable.thermometer_24px
+                    layersFab.setImageResource(R.drawable.thermometer_24px)
+                    activeLayerIcon = R.drawable.thermometer_24px
 
-                withContext(Dispatchers.Main) {
                     startImageAnimation()
                 }
 
@@ -352,6 +350,9 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
 
         startImageAnimation()
         updateGroundOverlayImage()
+
+        playPauseButton.icon =
+            ContextCompat.getDrawable(requireContext(), R.drawable.pause_24px)
     }
 
     private fun updateGroundOverlayImage() {

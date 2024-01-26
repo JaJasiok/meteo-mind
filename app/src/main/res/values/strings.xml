@@ -18,4 +18,7 @@
     <string name="remove">Remove</string>
     <string name="low">Low</string>
     <string name="high">High</string>
+    <string name="sunrise_sunset"><![CDATA[Sunrise & sunset]]></string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
 </resources>

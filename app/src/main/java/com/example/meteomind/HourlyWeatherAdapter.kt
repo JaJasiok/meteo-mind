@@ -44,8 +44,8 @@ class HourlyWeatherAdapter(private var weatherData: WeatherData) :
         val tcc = weatherData.timestamps[position].values.tcc
         val tp = weatherData.timestamps[position].values.tp
 
-//        val localDateTime = LocalDateTime.parse(timestamp)
-        val localDateTime = LocalDateTime.now()
+        val localDateTime = LocalDateTime.parse(timestamp)
+//        val localDateTime = LocalDateTime.now()
 
         val sunrise = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunrise?.date
         val sunset = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunset?.date
@@ -112,9 +112,9 @@ class HourlyWeatherAdapter(private var weatherData: WeatherData) :
             } else {
                 weatherImageFile = if (tcc < 0.5) {
                     if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                        "cloud_grey_sun_rain_snow"
-                    } else {
                         "cloud_grey_moon_rain_snow"
+                    } else {
+                        "cloud_grey_sun_rain_snow"
                     }
                 } else{
                     "cloud_grey_rain_snow"

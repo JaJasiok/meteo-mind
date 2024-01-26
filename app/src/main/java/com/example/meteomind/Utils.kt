@@ -7,17 +7,11 @@ import kotlin.math.atan2
 
 fun formatHour(timestamp: String) : String {
 
-    var num = timestamp.toInt()
-    num = (num * 6) % 24
+    val hour = timestamp.substring(11, 13).toInt()
+    val minute = timestamp.substring(14, 16)
+    val formattedHour = hour.toString()
 
-    if (num < 10) return "0$num:00"
-    return "$num:00"
-
-//    val hour = timestamp.substring(11, 13).toInt()
-//    val minute = timestamp.substring(14, 16)
-//    val formattedHour = if (hour == 0 && minute == "00") "24" else hour.toString()
-//
-//    return "$formattedHour:$minute"
+    return "$formattedHour:$minute"
 }
 
 fun calculateWindDirection(u: Double, v: Double): Float {

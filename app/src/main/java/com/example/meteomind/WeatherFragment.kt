@@ -65,9 +65,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
     private lateinit var particleView: ParticleView
     private var currentRunnable: Runnable? = null
 
-//    private lateinit var sensorManager: SensorManager
-//    private var accelerometer: Sensor? = null
-
     private lateinit var weatherData: WeatherData
 
     override fun onCreateView(
@@ -92,7 +89,7 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
         Places.initialize(requireContext(), apiKey, Locale.US)
         placesClient = Places.createClient(requireContext())
 
-        val searchBar = binding.searchBar
+        val searchBar = binding.weatherView.searchBar
 //        setSupportActionBar(searchBar)
 
         searchResultViewModel = ViewModelProvider(this)[SearchResultViewModel::class.java]
@@ -230,9 +227,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
             searchBar.hint = cityName
         }
 
-//        sensorManager = requireActivity().getSystemService(Context.SENSOR_SERVICE) as SensorManager
-//        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-
         particleView = binding.particleView
         particleSystem = ParticleSystem(requireContext())
 
@@ -241,32 +235,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
         updateWeather()
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//        accelerometer?.also { accelerometer ->
-//            sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
-//        }
-//    }
-//
-//    override fun onPause() {
-//        super.onPause()
-//        sensorManager.unregisterListener(this)
-//    }
-
-//    override fun onSensorChanged(event: SensorEvent) {
-////        Log.d("WeatherFragment", "Sensor changed")
-//        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-//            val ax = event.values[0]
-//            val ay = event.values[1]
-////            Log.d("WeatherFragment", "Acceleration: $ax, $ay")
-////            particleSystem?.setAcceleration(ax, ay)
-//        }
-//    }
-
-//    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-//        // Do nothing
-//    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -274,6 +242,8 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
 
     private fun updateWeather() {
         val timestamp = weatherData.timestamps[0].timestamp
+
+//        Toast.makeText(requireContext(), timestamp, Toast.LENGTH_LONG).show()
 
         val t2m = weatherData.timestamps[0].values.t2m
         val sp = weatherData.timestamps[0].values.sp
@@ -288,7 +258,6 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
 
             val handler = Handler(Looper.getMainLooper())
 
-            // Only create and post a new Runnable if currentRunnable is null
             if (currentRunnable == null) {
                 if (t2m > 1.0) {
                     currentRunnable = object : Runnable {
@@ -317,11 +286,10 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
             }
         }
 
-//        val localDateTime = LocalDateTime.parse(timestamp)
-        val localDateTime = LocalDateTime.now()
+        val localDateTime = LocalDateTime.parse(timestamp)
 
-        val sunrise = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunrise?.date
-        val sunset = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunset?.date
+        val sunrise = Solarized(weatherData.lat, weatherData.lng, localDateTime).sunrise?.date
+        val sunset = Solarized(weatherData.lat, weatherData.lng, localDateTime).sunset?.date
 
         var weatherImageFile: String
 
@@ -425,6 +393,15 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
 
         val barometer = binding.weatherView.barometerView
         barometer.setProgress(scalePressure(sp))
+
+        val sun = binding.weatherView.sunPositionView
+        sun.setSunPosition(localDateTime, sunrise!!, sunset!!)
+
+        val sunriseValue = binding.weatherView.sunriseValue
+        sunriseValue.text = sunrise.toString().substring(11, 16).removePrefix("0")
+
+        val sunsetValue = binding.weatherView.sunsetValue
+        sunsetValue.text = sunset.toString().substring(11, 16).removePrefix("0")
 
         val hourlyDetailsRecyclerView = binding.weatherView.hourlyDetails
         hourlyDetailsRecyclerView.layoutManager =

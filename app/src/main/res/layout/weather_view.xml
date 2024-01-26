@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="70dp"
     app:layout_behavior="@string/searchbar_scrolling_view_behavior">
 
     <LinearLayout
@@ -11,6 +10,13 @@
         android:layout_height="match_parent"
         android:layout_margin="16dp"
         android:orientation="vertical">
+
+        <com.google.android.material.search.SearchBar
+            android:id="@+id/search_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/searchbar_hint"
+            app:layout_scrollFlags="scroll|enterAlways"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -161,8 +167,8 @@
                                     style="?textAppearanceBody2"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:textSize="12sp"
-                                    android:text="@string/from" />
+                                    android:text="@string/from"
+                                    android:textSize="12sp" />
 
                                 <TextView
                                     android:id="@+id/wind_direction"
@@ -301,6 +307,86 @@
                     </RelativeLayout>
 
                 </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/sun_card"
+                style="?attr/materialCardViewFilledStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_rowWeight="1"
+                android:layout_columnSpan="2"
+                android:layout_marginTop="16dp"
+                app:contentPadding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="?textAppearanceTitleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sunrise_sunset" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="?textAppearanceBody2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:textSize="12sp"
+                                android:text="@string/sunrise" />
+
+                            <TextView
+                                android:id="@+id/sunrise_value"
+                                style="?textAppearanceBody1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="24sp"
+                                android:text="6:00" />
+
+                            <TextView
+                                style="?textAppearanceBody2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="16dp"
+                                android:textSize="12sp"
+                                android:text="@string/sunset" />
+
+                            <TextView
+                                android:id="@+id/sunset_value"
+                                style="?textAppearanceBody1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="24sp"
+                                android:text="18:00" />
+
+
+                        </LinearLayout>
+
+
+                    <com.example.meteomind.SunPositionView
+                        android:id="@+id/sun_position_view"
+                        android:layout_width="200dp"
+                        android:layout_height="120dp"
+                        android:layout_alignParentEnd="true" />
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+
 
             </com.google.android.material.card.MaterialCardView>
 
