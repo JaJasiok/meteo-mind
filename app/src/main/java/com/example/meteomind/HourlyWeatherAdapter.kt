@@ -1,5 +1,6 @@
 package com.example.meteomind
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -47,86 +48,23 @@ class HourlyWeatherAdapter(private var weatherData: WeatherData) :
         val localDateTime = LocalDateTime.parse(timestamp)
 //        val localDateTime = LocalDateTime.now()
 
-        val sunrise = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunrise?.date
-        val sunset = Solarized(weatherData.lat, weatherData.lng, LocalDateTime.now()).sunset?.date
+        val sunrise = Solarized(weatherData.lat, weatherData.lng, localDateTime).sunrise?.date
+        val sunset = Solarized(weatherData.lat, weatherData.lng, localDateTime).sunset?.date
 
         cardView.findViewById<TextView>(R.id.hourly_temp).text = t2m.toInt().toString()
 
-        var weatherImageFile: String
+        val weatherImageFile: String = getWeatherImageName(
+            weatherData.timestamps[position].values, localDateTime,
+            sunrise!!,
+            sunset!!
+        )
 
-        if (tp < 0.1){
-            if(tcc < 0.2) {
-                weatherImageFile = if(localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                    "sun"
-                } else {
-                    "moon"
-                }
-            } else if (tcc < 0.35) {
-                weatherImageFile = if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                    "cloud_light_sun"
-                } else {
-                    "cloud_light_moon"
-                }
-            } else if (tcc < 0.5) {
-                weatherImageFile = if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                    "cloud_grey_sun"
-                } else {
-                    "cloud_grey_moon"
-                }
-            } else if (tcc < 0.75) {
-                weatherImageFile = "cloud_grey"
-            } else {
-                weatherImageFile = "cloud_dark"
-            }
-        } else
-            if (t2m < 0) {
-                weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                        "cloud_grey_sun_snow"
-                    } else {
-                        "cloud_grey_moon_snow"
-                    }
-                } else if (tcc < 0.75) {
-                    "cloud_grey_snow"
-                } else {
-                    "cloud_dark_snow1"
-                }
-                if(tp > 3.0){
-                    weatherImageFile = "cloud_dark_snow2"
-                }
-            } else if (t2m > 2) {
-                weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                        "cloud_grey_sun_rain"
-                    } else {
-                        "cloud_grey_moon_rain"
-                    }
-                } else if (tcc < 0.75) {
-                    "cloud_grey_rain"
-                } else {
-                    "cloud_dark_rain1"
-                }
-                if(tp > 3.0){
-                    weatherImageFile = "cloud_dark_rain2"
-                }
-            } else {
-                weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)){
-                        "cloud_grey_moon_rain_snow"
-                    } else {
-                        "cloud_grey_sun_rain_snow"
-                    }
-                } else{
-                    "cloud_grey_rain_snow"
-                }
-                if(tp > 3.0){
-                    weatherImageFile = "cloud_dark_rain_snow"
-                }
-            }
-//
-        cardView.findViewById<ImageView>(R.id.hourly_image).setImageDrawable(getDrawableByName(cardView.context, weatherImageFile))
-//
+        cardView.findViewById<ImageView>(R.id.hourly_image)
+            .setImageDrawable(getDrawableByName(cardView.context, weatherImageFile))
+
         cardView.findViewById<TextView>(R.id.hourly_hour).text = formatHour(timestamp)
+
+        Log.i("HourlyWeatherAdapter", "sunrise: $sunrise, sunset: $sunset, localDateTime: $localDateTime")
 
         cardView.setOnClickListener {
             listener?.onClick(position)

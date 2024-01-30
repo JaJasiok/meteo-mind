@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -51,65 +53,86 @@ class MainActivity : AppCompatActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ),
-            0
-        )
+        if(isNetworkAvailable(this)){
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                0
+            )
 
-        lifecycleScope.launch(Dispatchers.IO)
-        {
-            val mapsResponse = WeatherApi.retrofitService.getMaps()
-            Log.d("MainActivity", "Getting maps data")
-            if (mapsResponse.isSuccessful) {
-                val responseBody = mapsResponse.body()
-                val zipFile = File(cacheDir, "maps.zip")
-                val fos = FileOutputStream(zipFile)
-                fos.write(responseBody?.bytes())
-                fos.close()
-
-                Log.d("MainActivity", "Zip file received and saved to cache")
-
-                // Delete all files in the target directory before unzipping
-                val directory = File(cacheDir, "maps")
-                if (directory.exists()) {
-                    directory.deleteRecursively()
-                }
-                
-                // Unpack the zip file
-                val zis = ZipInputStream(zipFile.inputStream())
-                var entry = zis.nextEntry
-                while (entry != null) {
-                    val outputFile = File(cacheDir, entry.name)
-
-                    val parentDir = outputFile.parentFile
-                    if (parentDir != null) {
-                        if (!parentDir.exists()) {
-                            parentDir.mkdirs()
-                        }
-                    }
-
-                    val fos = FileOutputStream(outputFile)
-                    val buffer = ByteArray(1024)
-                    var count = zis.read(buffer)
-                    while (count != -1) {
-                        fos.write(buffer, 0, count)
-                        count = zis.read(buffer)
-                    }
+            lifecycleScope.launch(Dispatchers.IO)
+            {
+                val mapsResponse = WeatherApi.retrofitService.getMaps()
+                Log.d("MainActivity", "Getting maps data")
+                if (mapsResponse.isSuccessful) {
+                    val responseBody = mapsResponse.body()
+                    val zipFile = File(cacheDir, "maps.zip")
+                    val fos = FileOutputStream(zipFile)
+                    fos.write(responseBody?.bytes())
                     fos.close()
-                    zis.closeEntry()
-                    entry = zis.nextEntry
-                }
-                zis.closeEntry()
-                zis.close()
 
-                withContext(Dispatchers.Main) {
-                    adapter.updateFragment(1, MapFragment())
+                    Log.d("MainActivity", "Zip file received and saved to cache")
+
+                    // Delete all files in the target directory before unzipping
+                    val directory = File(cacheDir, "maps")
+                    if (directory.exists()) {
+                        directory.deleteRecursively()
+                    }
+
+                    // Unpack the zip file
+                    val zis = ZipInputStream(zipFile.inputStream())
+                    var entry = zis.nextEntry
+                    while (entry != null) {
+                        val outputFile = File(cacheDir, entry.name)
+
+                        val parentDir = outputFile.parentFile
+                        if (parentDir != null) {
+                            if (!parentDir.exists()) {
+                                parentDir.mkdirs()
+                            }
+                        }
+
+                        val fos = FileOutputStream(outputFile)
+                        val buffer = ByteArray(1024)
+                        var count = zis.read(buffer)
+                        while (count != -1) {
+                            fos.write(buffer, 0, count)
+                            count = zis.read(buffer)
+                        }
+                        fos.close()
+                        zis.closeEntry()
+                        entry = zis.nextEntry
+                    }
+                    zis.closeEntry()
+                    zis.close()
+
+                    withContext(Dispatchers.Main) {
+                        adapter.updateFragment(1, MapFragment())
+                    }
+                }
+                else{
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Error connecting to the server. Please try again later.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
+        }
+        else{
+            Toast.makeText(
+                this,
+                "Please connect to the internet to use the app.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            // Delay the finish() call until after the Toast message disappears
+            Handler(Looper.getMainLooper()).postDelayed({
+                finish()
+            }, 3500)
         }
     }
 
@@ -144,6 +167,13 @@ class MainActivity : AppCompatActivity() {
                                                 putParcelable("weatherData", weatherResponse.body())
                                             }
                                         })
+                                    }
+                                    else{
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            "Error connecting to the server. Please try again later.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 }
                             }
@@ -186,6 +216,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 }
 

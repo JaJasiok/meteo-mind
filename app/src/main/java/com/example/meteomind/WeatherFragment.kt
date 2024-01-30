@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -103,20 +104,29 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
             locationAdapter = LocationAdapter(locations).apply {
                 setListener(object : LocationAdapter.Listener {
                     override fun onClick(position: Int) {
-                        val location = locations[position]
-                        searchBar.setText(location.locationName)
+                        if (!isNetworkAvailable(requireContext())){
+                            Toast.makeText(
+                                requireContext(),
+                                "No internet connection. Please try again later.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        else{
+                            val location = locations[position]
+                            searchBar.setText(location.locationName)
 
-                        lifecycleScope.launch {
-                            val weatherResponse =
-                                WeatherApi.retrofitService.getWeather(
-                                    location.locationLat,
-                                    location.locationLng
-                                )
-                            Log.d("WeatherFragment", "Getting weather data")
-                            if (weatherResponse.isSuccessful) {
-                                Log.d("WeatherFragment", "Weather data received")
-                                weatherData = weatherResponse.body()!!
-                                updateWeather()
+                            lifecycleScope.launch {
+                                val weatherResponse =
+                                    WeatherApi.retrofitService.getWeather(
+                                        location.locationLat,
+                                        location.locationLng
+                                    )
+                                Log.d("WeatherFragment", "Getting weather data")
+                                if (weatherResponse.isSuccessful) {
+                                    Log.d("WeatherFragment", "Weather data received")
+                                    weatherData = weatherResponse.body()!!
+                                    updateWeather()
+                                }
                             }
                         }
                         searchView.hide()
@@ -137,23 +147,38 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
             searchResultAdapter.apply {
                 setListener(object : SearchResultAdapter.Listener {
                     override fun onClick(position: Int) {
-                        val result = results[position]
-                        getPlaceByResult(result)
-                        searchBar.setText(result.locationName)
-                        searchView.editText.text.clear()
-                        recyclerView.adapter = locationAdapter
+                        if (!isNetworkAvailable(requireContext())){
+                            Toast.makeText(
+                                requireContext(),
+                                "No internet connection. Please try again later.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        else {
+                            val result = results[position]
+                            getPlaceByResult(result)
+                            searchBar.setText(result.locationName)
+                            searchView.editText.text.clear()
+                            recyclerView.adapter = locationAdapter
 
-                        lifecycleScope.launch {
-                            val weatherResponse =
-                                WeatherApi.retrofitService.getWeather(
-                                    result.locationLat,
-                                    result.locationLng
-                                )
-                            Log.d("WeatherFragment", "Getting weather data")
-                            if (weatherResponse.isSuccessful) {
-                                Log.d("WeatherFragment", "Weather data received")
-                                weatherData = weatherResponse.body()!!
-                                updateWeather()
+                            lifecycleScope.launch {
+                                val weatherResponse =
+                                    WeatherApi.retrofitService.getWeather(
+                                        result.locationLat,
+                                        result.locationLng
+                                    )
+                                Log.d("WeatherFragment", "Getting weather data")
+                                if (weatherResponse.isSuccessful) {
+                                    Log.d("WeatherFragment", "Weather data received")
+                                    weatherData = weatherResponse.body()!!
+                                    updateWeather()
+                                } else {
+                                    Toast.makeText(
+                                        requireContext(),
+                                        "Error connecting to the server. Please try again later.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
                             }
                         }
                         searchView.hide()
@@ -177,12 +202,21 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
         searchView
             .editText
             .doOnTextChanged { text, _, _, _ ->
-                if (text.isNullOrEmpty()) {
-                    searchResultViewModel.deleteResults()
-                    recyclerView.adapter = locationAdapter
-                } else {
-                    recyclerView.adapter = searchResultAdapter
-                    placesAutocomplete(text.toString())
+                if(!isNetworkAvailable(requireContext())){
+                    Toast.makeText(
+                        requireContext(),
+                        "No internet connection.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                else {
+                    if (text.isNullOrEmpty()) {
+                        searchResultViewModel.deleteResults()
+                        recyclerView.adapter = locationAdapter
+                    } else {
+                        recyclerView.adapter = searchResultAdapter
+                        placesAutocomplete(text.toString())
+                    }
                 }
             }
 
@@ -291,81 +325,12 @@ class WeatherFragment : Fragment(R.layout.fragment_weather)/*, SensorEventListen
         val sunrise = Solarized(weatherData.lat, weatherData.lng, localDateTime).sunrise?.date
         val sunset = Solarized(weatherData.lat, weatherData.lng, localDateTime).sunset?.date
 
-        var weatherImageFile: String
-
-        if (tp < 0.1) {
-            if (tcc < 0.2) {
-                weatherImageFile =
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
-                        "sun"
-                    } else {
-                        "moon"
-                    }
-            } else if (tcc < 0.35) {
-                weatherImageFile =
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
-                        "cloud_light_sun"
-                    } else {
-                        "cloud_light_moon"
-                    }
-            } else if (tcc < 0.5) {
-                weatherImageFile =
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
-                        "cloud_grey_sun"
-                    } else {
-                        "cloud_grey_moon"
-                    }
-            } else if (tcc < 0.75) {
-                weatherImageFile = "cloud_grey"
-            } else {
-                weatherImageFile = "cloud_dark"
-            }
-        } else
-            if (t2m < 0) {
-                weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
-                        "cloud_grey_sun_snow"
-                    } else {
-                        "cloud_grey_moon_snow"
-                    }
-                } else if (tcc < 0.75) {
-                    "cloud_grey_snow"
-                } else {
-                    "cloud_dark_snow1"
-                }
-                if (tp > 3.0) {
-                    weatherImageFile = "cloud_dark_snow2"
-                }
-            } else if (t2m > 2) {
-                weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
-                        "cloud_grey_sun_rain"
-                    } else {
-                        "cloud_grey_moon_rain"
-                    }
-                } else if (tcc < 0.75) {
-                    "cloud_grey_rain"
-                } else {
-                    "cloud_dark_rain1"
-                }
-                if (tp > 3.0) {
-                    weatherImageFile = "cloud_dark_rain2"
-                }
-            } else {
-                weatherImageFile = if (tcc < 0.5) {
-                    if (localDateTime.isAfter(sunrise) && localDateTime.isBefore(sunset)) {
-                        "cloud_grey_sun_rain_snow"
-                    } else {
-                        "cloud_grey_moon_rain_snow"
-                    }
-                } else {
-                    "cloud_grey_rain_snow"
-                }
-                if (tp > 3.0) {
-                    weatherImageFile = "cloud_dark_rain_snow"
-                }
-            }
-
+        val weatherImageFile = getWeatherImageName(
+            weatherData.timestamps[0].values,
+            localDateTime,
+            sunrise!!,
+            sunset!!
+        )
 //        Toast.makeText(requireContext(), weatherImageFile, Toast.LENGTH_LONG).show()
 
         val weatherImage = binding.weatherView.weatherImage
